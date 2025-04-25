@@ -1,13 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { getQueryFn } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { CardTemplate } from "@shared/schema";
-
-// UI Components
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
   CardContent,
@@ -16,14 +14,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input"; 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid, Search, PlusCircle, ArrowLeft, Bookmark } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { CardTemplate } from "@shared/schema";
+import { Search, Grid, PlusCircle, Bookmark, Palette, Eye } from "lucide-react";
 
 export default function AdminTemplatesPage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   
   // Navigation function
   const navigate = useCallback((path: string) => {
@@ -52,26 +51,26 @@ export default function AdminTemplatesPage() {
     }
   }, [user, navigate, toast]);
   
-  // Fetch all templates
-  const { data: templates = [], isLoading: templatesLoading } = useQuery<CardTemplate[]>({
+  // Fetch templates
+  const { data: templates, isLoading: templatesLoading } = useQuery({
     queryKey: ['/api/card-templates'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
-    enabled: !!user && user.userType === 'admin'
+    enabled: !!user && user.userType === 'admin',
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to load templates",
+        variant: "destructive"
+      });
+    }
   });
   
   // Filter templates based on search query
-  const filteredTemplates = useMemo(() => {
-    if (!templates || templates.length === 0) return [];
-    
-    if (!searchQuery) return templates;
-    
-    const query = searchQuery.toLowerCase().trim();
-    return templates.filter((template) => 
-      template.name.toLowerCase().includes(query) || 
-      (template.description && template.description.toLowerCase().includes(query))
-    );
-  }, [templates, searchQuery]);
+  const filteredTemplates = templates?.filter((template: CardTemplate) => {
+    return template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           (template.description && template.description.toLowerCase().includes(searchQuery.toLowerCase()));
+  }) || [];
   
   // Loading state
   if (userLoading || templatesLoading) {
@@ -89,23 +88,13 @@ export default function AdminTemplatesPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">Card Templates</h1>
+              <h1 className="text-2xl font-bold">Business Card Templates</h1>
               <p className="text-muted-foreground">
-                View and select templates for your business cards
+                Browse and select templates for your business cards
               </p>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search templates..."
-                  className="pl-8 h-9 w-[200px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button onClick={() => navigate('/admin/dashboard')}>
+              <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
                 Back to Dashboard
               </Button>
             </div>
@@ -115,8 +104,23 @@ export default function AdminTemplatesPage() {
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-6">
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-4">
+        {/* Search and filter */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search templates..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        
+        {/* Templates tabs */}
+        <Tabs defaultValue="all" onValueChange={setActiveTab}>
+          <TabsList className="mb-6">
             <TabsTrigger value="all">All Templates</TabsTrigger>
             <TabsTrigger value="standard">Standard</TabsTrigger>
             <TabsTrigger value="premium">Premium</TabsTrigger>
@@ -128,7 +132,6 @@ export default function AdminTemplatesPage() {
                 filteredTemplates.map((template: CardTemplate) => (
                   <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="aspect-video bg-muted relative">
-                      {/* This would ideally display a preview image of the template */}
                       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                         <Grid className="h-12 w-12" />
                       </div>
@@ -150,18 +153,28 @@ export default function AdminTemplatesPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-between">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          // Preview functionality would be added in future phases
-                          toast({
-                            title: "Preview",
-                            description: `Previewing ${template.name} template`,
-                          });
-                        }}
-                      >
-                        Preview
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            // Preview functionality would be added in future phases
+                            toast({
+                              title: "Preview",
+                              description: `Previewing ${template.name} template`,
+                            });
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate(`/admin/template/${template.id}`)}
+                        >
+                          <Palette className="h-4 w-4 mr-2" />
+                          Customize
+                        </Button>
+                      </div>
                       <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
                         Use Template
                       </Button>
@@ -206,17 +219,27 @@ export default function AdminTemplatesPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardFooter className="flex justify-between">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => {
-                            toast({
-                              title: "Preview",
-                              description: `Previewing ${template.name} template`,
-                            });
-                          }}
-                        >
-                          Preview
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              toast({
+                                title: "Preview",
+                                description: `Previewing ${template.name} template`,
+                              });
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Preview
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => navigate(`/admin/template/${template.id}`)}
+                          >
+                            <Palette className="h-4 w-4 mr-2" />
+                            Customize
+                          </Button>
+                        </div>
                         <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
                           Use Template
                         </Button>
@@ -266,17 +289,27 @@ export default function AdminTemplatesPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardFooter className="flex justify-between">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => {
-                            toast({
-                              title: "Preview",
-                              description: `Previewing ${template.name} template`,
-                            });
-                          }}
-                        >
-                          Preview
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              toast({
+                                title: "Preview",
+                                description: `Previewing ${template.name} template`,
+                              });
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Preview
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => navigate(`/admin/template/${template.id}`)}
+                          >
+                            <Palette className="h-4 w-4 mr-2" />
+                            Customize
+                          </Button>
+                        </div>
                         <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
                           Use Template
                         </Button>

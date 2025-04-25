@@ -381,6 +381,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a specific card template
+  app.get("/api/card-templates/:id", isAuthenticated, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+      
+      const template = await storage.getCardTemplate(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error("Error fetching template:", error);
+      res.status(500).json({ message: "Failed to fetch template" });
+    }
+  });
+  
   // Get all business cards for an admin
   app.get("/api/cards", isAdmin, async (req, res) => {
     try {
