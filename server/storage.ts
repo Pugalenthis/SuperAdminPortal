@@ -42,7 +42,7 @@ export class MemStorage implements IStorage {
     // Initialize with a default super admin
     this.createSuperAdmin({
       email: "admin@example.com",
-      password: "$2b$10$ZXTzaPc0BF9RRbxK9jZoKOZMVqM8BUvNFqtPzSwdZn3hD81.FBqrG" // "password123" hashed
+      password: "$2b$10$2Llj/za9sL9GGK6Z9WwO4OADbhfbecTZreFWKFI5XJHieAwlqrYW." // "password123" hashed
     });
   }
 
