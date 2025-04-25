@@ -37,6 +37,20 @@ export default function AdminEmployeeEditPage() {
   }, [setLocation]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Define the form
+  const form = useForm<EmployeeEditFormValues>({
+    resolver: zodResolver(employeeEditFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      title: "",
+      department: "",
+      profileImage: "",
+    },
+  });
+  
   // Fetch user to verify admin access
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user'],
@@ -65,34 +79,23 @@ export default function AdminEmployeeEditPage() {
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
     enabled: !!user && user.userType === 'admin' && !!employeeId,
-    onSuccess: (data) => {
-      if (data) {
-        form.reset({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          phone: data.phone || "",
-          title: data.title,
-          department: data.department || "",
-          profileImage: data.profileImage || "",
-        });
-      }
-    }
   });
   
-  // Form definition
-  const form = useForm<EmployeeEditFormValues>({
-    resolver: zodResolver(employeeEditFormSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      title: "",
-      department: "",
-      profileImage: "",
-    },
-  });
+  // Update form when employee data is loaded
+  useEffect(() => {
+    if (employee) {
+      console.log("Setting form values with employee data:", employee);
+      form.reset({
+        firstName: employee.firstName || "",
+        lastName: employee.lastName || "",
+        email: employee.email || "",
+        phone: employee.phone || "",
+        title: employee.title || "",
+        department: employee.department || "",
+        profileImage: employee.profileImage || "",
+      });
+    }
+  }, [employee, form]);
   
   // Form submission handler
   const onSubmit = async (values: EmployeeEditFormValues) => {
