@@ -1,8 +1,12 @@
 import { admins, superAdmins, type Admin, type InsertAdmin, type SuperAdmin, type InsertSuperAdmin } from "@shared/schema";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { db } from "./db";
+import { pool } from "./db";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 // Storage interface for CRUD operations
 export interface IStorage {
@@ -22,79 +26,78 @@ export interface IStorage {
   sessionStore: session.Store;
 }
 
-// In-memory storage implementation
-export class MemStorage implements IStorage {
-  private adminStorage: Map<number, Admin>;
-  private superAdminStorage: Map<number, SuperAdmin>;
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
-  adminCurrentId: number;
-  superAdminCurrentId: number;
 
   constructor() {
-    this.adminStorage = new Map();
-    this.superAdminStorage = new Map();
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // 24 hours
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
+      tableName: 'user_sessions'
     });
-    this.adminCurrentId = 1;
-    this.superAdminCurrentId = 1;
     
-    // Initialize with a default super admin
-    this.createSuperAdmin({
-      email: "admin@example.com",
-      password: "$2b$10$2Llj/za9sL9GGK6Z9WwO4OADbhfbecTZreFWKFI5XJHieAwlqrYW." // "password123" hashed
-    });
+    // Initialize with a default super admin (only if none exist)
+    this.initDefaultSuperAdmin();
+  }
+
+  private async initDefaultSuperAdmin() {
+    try {
+      const existingSuperAdmins = await db.select().from(superAdmins);
+      
+      if (existingSuperAdmins.length === 0) {
+        console.log("Creating default super admin");
+        await this.createSuperAdmin({
+          email: "admin@example.com",
+          password: "$2b$10$2Llj/za9sL9GGK6Z9WwO4OADbhfbecTZreFWKFI5XJHieAwlqrYW." // "password123" hashed
+        });
+      }
+    } catch (error) {
+      console.error("Error initializing default super admin:", error);
+    }
   }
 
   // Admin methods
   async getAdmin(id: number): Promise<Admin | undefined> {
-    return this.adminStorage.get(id);
+    const [admin] = await db.select().from(admins).where(eq(admins.id, id));
+    return admin;
   }
 
   async getAdminByEmail(email: string): Promise<Admin | undefined> {
-    return Array.from(this.adminStorage.values()).find(
-      (admin) => admin.email === email
-    );
+    const [admin] = await db.select().from(admins).where(eq(admins.email, email));
+    return admin;
   }
 
   async getAllAdmins(): Promise<Admin[]> {
-    return Array.from(this.adminStorage.values());
+    return await db.select().from(admins);
   }
 
   async createAdmin(insertAdmin: InsertAdmin): Promise<Admin> {
-    const id = this.adminCurrentId++;
-    const now = new Date();
-    const admin: Admin = { 
-      ...insertAdmin, 
-      id,
-      status: "active",
-      createdAt: now
-    };
-    this.adminStorage.set(id, admin);
+    const [admin] = await db.insert(admins).values(insertAdmin).returning();
     return admin;
   }
 
   async deleteAdmin(id: number): Promise<boolean> {
-    return this.adminStorage.delete(id);
+    const result = await db.delete(admins).where(eq(admins.id, id)).returning({ id: admins.id });
+    return result.length > 0;
   }
 
   // Super Admin methods
   async getSuperAdmin(id: number): Promise<SuperAdmin | undefined> {
-    return this.superAdminStorage.get(id);
+    const [superAdmin] = await db.select().from(superAdmins).where(eq(superAdmins.id, id));
+    return superAdmin;
   }
 
   async getSuperAdminByEmail(email: string): Promise<SuperAdmin | undefined> {
-    return Array.from(this.superAdminStorage.values()).find(
-      (superAdmin) => superAdmin.email === email
-    );
+    const [superAdmin] = await db.select().from(superAdmins).where(eq(superAdmins.email, email));
+    return superAdmin;
   }
 
   async createSuperAdmin(insertSuperAdmin: InsertSuperAdmin): Promise<SuperAdmin> {
-    const id = this.superAdminCurrentId++;
-    const superAdmin: SuperAdmin = { ...insertSuperAdmin, id };
-    this.superAdminStorage.set(id, superAdmin);
+    const [superAdmin] = await db.insert(superAdmins).values(insertSuperAdmin).returning();
     return superAdmin;
   }
 }
 
-export const storage = new MemStorage();
+// Export database storage implementation
+export const storage = new DatabaseStorage();
