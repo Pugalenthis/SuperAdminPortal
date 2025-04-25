@@ -24,9 +24,13 @@ import { TemplatePreviewModal } from "@/components/template-preview-modal";
 
 export default function AdminTemplatesPage() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  
+  // Get initial tab from URL query parameter or default to 'all'
+  const initialTab = location.includes('tab=my-templates') ? 'my-templates' : 'all';
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [isCustomTemplate, setIsCustomTemplate] = useState(false);
@@ -220,7 +224,7 @@ export default function AdminTemplatesPage() {
         </div>
         
         {/* Templates tabs */}
-        <Tabs defaultValue="all" onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="all">All Templates</TabsTrigger>
             <TabsTrigger value="standard">Standard</TabsTrigger>
@@ -453,98 +457,73 @@ export default function AdminTemplatesPage() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle>{template.name}</CardTitle>
-                        <Star className="h-5 w-5 text-amber-400 fill-amber-400" />
+                        <div className="flex items-center space-x-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(template)}>
+                            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                            <span className="sr-only">Delete Template</span>
+                          </Button>
+                        </div>
                       </div>
                       <CardDescription>
-                        {template.description || "Your customized template"}
+                        {template.description || "A customized business card template"}
                       </CardDescription>
                     </CardHeader>
-                    <CardFooter className="flex flex-col gap-3">
-                      <div className="flex space-x-2 w-full">
+                    <CardFooter className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex space-x-2 w-full sm:w-auto">
                         <Button 
                           variant="outline" 
-                          className="flex-1"
+                          className="flex-1 sm:flex-initial"
                           onClick={() => handlePreviewClick(template.id, true)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           Preview
                         </Button>
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => navigate(`/admin/new-card?customTemplate=${template.id}`)}
-                        >
-                          <User className="h-4 w-4 mr-2" />
-                          Use Template
-                        </Button>
                       </div>
-                      <div className="flex space-x-2 w-full">
-                        <Button 
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => navigate(`/admin/template/custom/${template.id}/edit`)}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => handleDeleteClick(template)}
-                          disabled={deleteTemplateMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
-                      </div>
+                      <Button 
+                        className="w-full sm:w-auto" 
+                        onClick={() => navigate(`/admin/new-card?customTemplate=${template.id}`)}
+                      >
+                        Use Template
+                      </Button>
                     </CardFooter>
                   </Card>
                 ))
               ) : (
                 <div className="col-span-full flex flex-col items-center justify-center p-12 text-center">
                   <FileEdit className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No custom templates yet</h3>
-                  <p className="text-muted-foreground mt-2 mb-6">
+                  <h3 className="text-lg font-medium">No custom templates</h3>
+                  <p className="text-muted-foreground mt-2">
                     {searchQuery 
                       ? `No custom templates match your search for "${searchQuery}".` 
-                      : "You haven't created any custom templates yet. Customize a standard template to get started."}
+                      : "You haven't created any custom templates yet. Customize a template to get started."}
                   </p>
-                  <Button onClick={() => setActiveTab('standard')}>
-                    <Palette className="h-4 w-4 mr-2" />
-                    Customize a Template
-                  </Button>
                 </div>
               )}
             </div>
           </TabsContent>
         </Tabs>
       </main>
-      
-      {/* Preview Modal */}
+
+      {/* Template preview modal */}
       <TemplatePreviewModal
         open={previewModalOpen}
         onOpenChange={setPreviewModalOpen}
         templateId={selectedTemplateId}
         isCustomTemplate={isCustomTemplate}
       />
-      
-      {/* Delete Confirmation Dialog */}
+
+      {/* Delete confirmation modal */}
       {templateToDelete && (
-        <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 ${deleteModalOpen ? 'block' : 'hidden'}`}>
-          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
+        <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 ${deleteModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity`}>
+          <div className="bg-background rounded-lg shadow-lg max-w-md w-full p-6 mx-4">
             <h3 className="text-xl font-bold mb-2">Confirm Deletion</h3>
             <p className="text-muted-foreground mb-4">
-              Are you sure you want to delete the custom template <span className="font-medium">{templateToDelete.name}</span>? 
-              This action cannot be undone.
+              Are you sure you want to delete the template "{templateToDelete.name}"? This action cannot be undone.
             </p>
-            <div className="flex justify-end space-x-2 pt-2">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setDeleteModalOpen(false);
-                  setTemplateToDelete(null);
-                }}
-                disabled={deleteTemplateMutation.isPending}
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteModalOpen(false)}
               >
                 Cancel
               </Button>
@@ -555,11 +534,11 @@ export default function AdminTemplatesPage() {
               >
                 {deleteTemplateMutation.isPending ? (
                   <>
-                    <div className="w-4 h-4 rounded-full border-2 border-background border-t-transparent animate-spin mr-2" />
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
                     Deleting...
                   </>
                 ) : (
-                  <>Delete</>
+                  'Delete Template'
                 )}
               </Button>
             </div>

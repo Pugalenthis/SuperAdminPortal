@@ -192,9 +192,10 @@ export default function AdminTemplateCustomizePage() {
       // Invalidate the custom templates query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['/api/custom-templates'] });
       
-      // Redirect to templates page
+      // Redirect to templates page with query parameter to auto-select My Templates tab
       setTimeout(() => {
-        navigate('/admin/templates');
+        // Add a query parameter to indicate we should show the My Templates tab
+        navigate('/admin/templates?tab=my-templates');
       }, 1000);
     } catch (error) {
       console.error("Save error:", error);
