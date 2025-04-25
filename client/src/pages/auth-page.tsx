@@ -72,13 +72,43 @@ export default function AuthPage() {
     console.log("Submitting login form:", values);
     setIsSubmitting(true); // Set submitting state manually
     
-    // Use the login function from auth context - this is the simplest approach
-    login(values);
-    
-    // Reset submitting state after a delay
-    setTimeout(() => {
+    // Use direct fetch with window location change - most reliable approach
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+      credentials: 'include'
+    })
+    .then(async (res) => {
+      if (res.ok) {
+        // If login succeeded, get user data
+        const data = await res.json();
+        console.log("Login succeeded:", data);
+        
+        // Force navigation to dashboard
+        console.log("Forcing navigation to dashboard");
+        window.location.href = '/'; // For superadmin, always redirect to root
+      } else {
+        // If login failed
+        console.error("Login failed:", res.status, res.statusText);
+        toast({
+          title: "Login failed",
+          description: "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+      }
+    })
+    .catch((error) => {
+      // Handle network errors
+      console.error("Login error:", error);
+      toast({
+        title: "Login error",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
       setIsSubmitting(false);
-    }, 2000);
+    });
   }
 
   return (

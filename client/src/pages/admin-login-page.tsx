@@ -54,13 +54,43 @@ export default function AdminLoginPage() {
     console.log("Submitting admin login form:", values);
     setIsLoading(true);
     
-    // Use the login function from auth context
-    login(values);
-    
-    // Reset loading state after a delay
-    setTimeout(() => {
+    // Use direct fetch with window location change - most reliable approach
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+      credentials: 'include'
+    })
+    .then(async (res) => {
+      if (res.ok) {
+        // If login succeeded, get user data
+        const data = await res.json();
+        console.log("Admin login succeeded:", data);
+        
+        // Force navigation to admin dashboard
+        console.log("Forcing navigation to admin dashboard");
+        window.location.href = '/admin/dashboard'; // For admin, always redirect to admin dashboard
+      } else {
+        // If login failed
+        console.error("Admin login failed:", res.status, res.statusText);
+        toast({
+          title: "Login failed",
+          description: "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+      }
+    })
+    .catch((error) => {
+      // Handle network errors
+      console.error("Admin login error:", error);
+      toast({
+        title: "Login error",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
       setIsLoading(false);
-    }, 2000);
+    });
   }
 
   return (
