@@ -1,8 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SuperAdmin } from "@/types";
+import { SuperAdmin, LoginCredentials } from "@/types";
 import { getQueryFn, apiRequest } from "../lib/queryClient";
-import { LoginCredentials } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
@@ -110,7 +109,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Login function to expose via context
   const login = (credentials: LoginCredentials) => {
     console.log("Login function called with:", credentials);
-    loginMutation.mutate(credentials);
+    
+    // Direct API call for logging in
+    fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+      credentials: "include"
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Login failed");
+        }
+        return res.json();
+      })
+      .then(userData => {
+        console.log("Login fetch response:", userData);
+        queryClient.setQueryData(["/api/user"], userData);
+        refetch();
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        });
+        return userData;
+      })
+      .catch(err => {
+        console.error("Login fetch error:", err);
+        toast({
+          title: "Login failed",
+          description: err.message || "Invalid credentials",
+          variant: "destructive",
+        });
+      });
   };
 
   // Logout function to expose via context

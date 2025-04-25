@@ -9,8 +9,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { Redirect, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
-import { LoginCredentials } from "@shared/schema";
+import { useEffect, useState } from "react";
+import { LoginCredentials } from "@/types";
+import { loginUser } from "@/lib/auth";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -18,9 +19,10 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { user, login, loginLoading, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -46,7 +48,30 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
       console.log("Submitting login form:", values);
-      login(values as LoginCredentials);
+      setIsSubmitting(true);
+      
+      // Direct login call
+      const result = await loginUser(values as LoginCredentials);
+      
+      if (result.success) {
+        // Show success message
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        });
+        
+        // Manually navigate
+        setTimeout(() => {
+          setLocation("/");
+        }, 500);
+      } else {
+        // Show error message
+        toast({
+          title: "Login failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Error during form submission:", error);
       toast({
@@ -54,6 +79,8 @@ export default function LoginPage() {
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -126,9 +153,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loginLoading}
+                disabled={isSubmitting}
               >
-                {loginLoading ? (
+                {isSubmitting ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
                 Sign In
