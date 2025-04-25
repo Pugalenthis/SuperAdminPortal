@@ -6,6 +6,8 @@ import AdminLoginPage from "@/pages/admin-login-page";
 import AdminDashboardPage from "@/pages/admin-dashboard-page";
 import AdminEmployeesPage from "@/pages/admin-employees-page";
 import AdminNewEmployeePage from "@/pages/admin-new-employee-page";
+import AdminEmployeeDetailPage from "@/pages/admin-employee-detail-page";
+import AdminEmployeeEditPage from "@/pages/admin-employee-edit-page";
 import AdminNewCardPage from "@/pages/admin-new-card-page";
 import CardViewPage from "@/pages/card-view-page";
 import { ProtectedRoute } from "./lib/protected-route";
@@ -24,6 +26,8 @@ function App() {
         <Route path="/admin/dashboard" component={AdminDashboardPage} />
         <Route path="/admin/employees" component={AdminEmployeesPage} />
         <Route path="/admin/employees/new" component={AdminNewEmployeePage} />
+        <Route path="/admin/employees/:employeeId" component={AdminEmployeeDetailPage} />
+        <Route path="/admin/employees/:employeeId/edit" component={AdminEmployeeEditPage} />
         <Route path="/admin/employees/:employeeId/cards/new" component={AdminNewCardPage} />
         
         {/* Public Card View */}
