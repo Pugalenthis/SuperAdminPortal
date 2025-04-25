@@ -113,14 +113,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (credentials: LoginCredentials) => {
     console.log("Login function called with:", credentials);
     
-    // Use the mutation instead of direct fetch
+    // First, try using the mutation
     loginMutation.mutate(credentials);
+    
+    // As a backup, also force direct window location change after successful API call
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+      credentials: 'include'
+    })
+    .then(async (res) => {
+      if (!res.ok) return; // Only proceed if login was successful
+      
+      const userData = await res.json();
+      console.log("Login successful backup method:", userData);
+      
+      // Force navigation based on user type after a short delay
+      setTimeout(() => {
+        // User may have already been redirected by the mutation, check if still on login page
+        if (window.location.pathname === '/auth' || window.location.pathname === '/admin/login') {
+          console.log("Using backup redirect method");
+          const redirectPath = userData.userType === 'superadmin' ? '/' : '/admin/dashboard';
+          window.location.href = redirectPath;
+        }
+      }, 1000);
+    })
+    .catch(err => console.error("Backup login method error:", err));
   };
 
   // Logout function to expose via context
   const logout = () => {
     console.log("Logout function called");
+    
+    // Use the mutation
     logoutMutation.mutate();
+    
+    // Direct API call as a backup method
+    fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'include'
+    })
+    .then(() => {
+      console.log("Direct logout method completed");
+      
+      // Always redirect to login page after logout
+      setTimeout(() => {
+        // Clear any cached data
+        queryClient.clear();
+        
+        // Redirect to login page
+        window.location.href = '/auth';
+      }, 500);
+    })
+    .catch(err => console.error("Direct logout error:", err));
   };
 
   // Value to provide to the context

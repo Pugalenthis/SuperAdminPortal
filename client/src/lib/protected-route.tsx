@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import { Redirect, Route } from "wouter";
+import { Redirect, Route, useLocation } from "wouter";
+import { useEffect, useState } from "react";
 
 export function ProtectedRoute({
   path,
@@ -13,10 +14,14 @@ export function ProtectedRoute({
   adminOnly?: boolean;
   superAdminOnly?: boolean;
 }) {
+  // State to track if we've attempted to redirect
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
+  const [location, setLocation] = useLocation();
+  
   // Use the useAuth hook for authentication status
   const { user, isLoading } = useAuth();
   
-  console.log("ProtectedRoute state:", { path, user, isLoading, adminOnly, superAdminOnly });
+  console.log("ProtectedRoute state:", { path, user, isLoading, adminOnly, superAdminOnly, location });
   
   // Custom access control logic
   const canAccess = () => {
@@ -52,6 +57,31 @@ export function ProtectedRoute({
     return "/auth"; // Default fallback
   };
   
+  // Handle redirection with force navigation when wouter doesn't work
+  useEffect(() => {
+    // Skip if still loading or if we can access the page
+    if (isLoading || canAccess() || redirectAttempted) return;
+    
+    // Mark that we've attempted a redirect
+    setRedirectAttempted(true);
+    
+    const redirectPath = getRedirectPath();
+    console.log(`Forcing navigation to ${redirectPath} from ${location}`);
+    
+    // First try wouter's navigation
+    setLocation(redirectPath);
+    
+    // As a fallback, use window.location after a short delay
+    const timer = setTimeout(() => {
+      if (window.location.pathname === location) {
+        console.log("Wouter navigation failed, using window.location.href");
+        window.location.href = redirectPath;
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [isLoading, user, location, redirectAttempted]);
+  
   return (
     <Route path={path}>
       {isLoading ? (
@@ -63,7 +93,8 @@ export function ProtectedRoute({
         // Authenticated and authorized - show component
         <Component />
       ) : (
-        // Not authenticated or not authorized - redirect
+        // Handle redirection in the useEffect
+        // This is a fallback if the useEffect redirect fails
         <Redirect to={getRedirectPath()} />
       )}
     </Route>

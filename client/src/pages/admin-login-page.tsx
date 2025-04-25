@@ -54,64 +54,13 @@ export default function AdminLoginPage() {
     console.log("Submitting admin login form:", values);
     setIsLoading(true);
     
-    // Create form data with redirect parameter
-    const data = {
-      ...values,
-      redirect: true
-    };
+    // Use the login function from auth context
+    login(values);
     
-    // Send the login request with redirect parameter
-    fetch('/api/login', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'text/html,application/json' // Accept both HTML and JSON
-      },
-      body: JSON.stringify(data),
-      credentials: 'include',
-      redirect: 'follow' // Allow redirects
-    })
-    .then(response => {
-      console.log("Admin login response received, status:", response.status);
-      console.log("Admin login response URL:", response.url);
-      
-      // If response URL has changed, it means we were redirected - follow it
-      if (response.redirected || response.url.includes('/admin/dashboard') || response.url === '/' || response.url.includes('?error=')) {
-        console.log("Following redirect to:", response.url);
-        window.location.href = response.url;
-        return null;
-      }
-      
-      // If not redirected but successful, handle the JSON response
-      if (response.ok) {
-        return response.json().then(userData => {
-          console.log("Admin login successful with JSON response:", userData);
-          
-          // Show success toast
-          toast({
-            title: "Login successful",
-            description: "Welcome to your organization dashboard!",
-          });
-          
-          // Redirect based on user type
-          const redirectUrl = userData.redirectUrl || (userData.userType === 'admin' ? '/admin/dashboard' : '/');
-          console.log("Redirecting to:", redirectUrl);
-          window.location.href = redirectUrl;
-        });
-      }
-      
-      // Handle error cases
-      throw new Error("Login failed: " + response.statusText);
-    })
-    .catch((error) => {
-      console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials",
-        variant: "destructive",
-      });
+    // Reset loading state after a delay
+    setTimeout(() => {
       setIsLoading(false);
-    });
+    }, 2000);
   }
 
   return (
