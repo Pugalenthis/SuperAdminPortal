@@ -116,24 +116,40 @@ export default function AdminEmployeesPage() {
     try {
       const response = await fetch(`/api/employees/${deleteEmployeeId}`, {
         method: "DELETE",
+        credentials: 'include'
       });
       
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "Failed to delete employee");
       }
+
+      // Store the deleted employee's info for the message
+      const deletedName = `${employeeToDelete?.firstName} ${employeeToDelete?.lastName}`;
       
-      // Invalidate the employees query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      // Close the dialog first
+      setDeleteEmployeeId(null);
+      setEmployeeToDelete(null);
+      
+      // Then invalidate and manually refetch
+      await queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      console.log("Deleted employee, manually refreshing list");
+      
+      // Directly update the UI by removing the deleted employee from the current list
+      // Get the current data
+      const currentEmployees = queryClient.getQueryData(['/api/employees']) as Employee[] || [];
+      // Filter out the deleted employee
+      const updatedEmployees = currentEmployees.filter(emp => emp.id !== deleteEmployeeId);
+      // Update the cache directly
+      queryClient.setQueryData(['/api/employees'], updatedEmployees);
+      
+      // Then refetch to ensure we have the latest data from the server
+      await refetchEmployees();
       
       toast({
         title: "Employee deleted",
-        description: `${employeeToDelete?.firstName} ${employeeToDelete?.lastName} has been removed`,
+        description: `${deletedName} has been removed`,
       });
-      
-      // Close the dialog
-      setDeleteEmployeeId(null);
-      setEmployeeToDelete(null);
     } catch (error) {
       console.error("Error deleting employee:", error);
       toast({
