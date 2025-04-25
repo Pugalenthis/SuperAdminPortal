@@ -72,12 +72,37 @@ export default function AuthPage() {
     console.log("Submitting login form:", values);
     setIsSubmitting(true); // Set submitting state manually
     
-    // Add a small delay to make sure the button updates visually
-    setTimeout(() => {
-      login(values);
-      // Note: Redirect will happen automatically via the useEffect that watches for user changes
-      // The loginLoading effect will reset isSubmitting when login process completes
-    }, 100);
+    // Use raw fetch for direct control of login process
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+      credentials: 'include'
+    })
+    .then(async (res) => {
+      console.log("Login response status:", res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Login failed");
+      }
+      
+      return res.json();
+    })
+    .then((userData) => {
+      console.log("Login successful:", userData);
+      // Update the auth context with user data
+      window.location.href = '/'; // Force reload to dashboard
+    })
+    .catch((error) => {
+      console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+      setIsSubmitting(false); // Reset submitting state on error
+    });
   }
 
   return (
