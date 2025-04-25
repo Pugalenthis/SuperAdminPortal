@@ -192,7 +192,7 @@ export default function AdminCardEditPage() {
             Back to Cards
           </Button>
           <h1 className="text-2xl font-bold">Edit Business Card</h1>
-          {card && card.employee && (
+          {card?.employee && (
             <p className="text-muted-foreground">
               For {card.employee.firstName} {card.employee.lastName}
             </p>
@@ -218,7 +218,7 @@ export default function AdminCardEditPage() {
                       <FormLabel>Card Template</FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))}
-                        defaultValue={field.value.toString()} 
+                        defaultValue={field.value ? field.value.toString() : ""}
                       >
                         <FormControl>
                           <SelectTrigger>
