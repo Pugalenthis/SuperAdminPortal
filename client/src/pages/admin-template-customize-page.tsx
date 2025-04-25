@@ -74,10 +74,21 @@ export default function AdminTemplateCustomizePage() {
   // Fetch template data
   const { data: template, isLoading: templateLoading } = useQuery<CardTemplate>({
     queryKey: ['/api/card-templates', templateId],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryFn: async () => {
+      // Add logging to debug the templateId value
+      console.log("Fetching template with ID:", templateId);
+      if (!templateId) throw new Error("No template ID provided");
+      
+      const response = await fetch(`/api/card-templates/${templateId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch template data");
+      }
+      return await response.json();
+    },
     retry: false,
     enabled: !!templateId && !!user && user.userType === 'admin',
     onError: (error) => {
+      console.error("Error fetching template:", error);
       toast({
         title: "Error",
         description: "Failed to load template data. " + error.message,
@@ -132,9 +143,19 @@ export default function AdminTemplateCustomizePage() {
   };
   
   const handleSaveCustomization = async () => {
-    if (!template) return;
+    if (!template) {
+      toast({
+        title: "Error",
+        description: "No template data available. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
+      console.log("Template being saved:", template);
+      console.log("Template ID:", template.id, "Type:", typeof template.id);
+      
       // Create a customization data object with all settings
       const customizationData = {
         colors,
@@ -143,16 +164,22 @@ export default function AdminTemplateCustomizePage() {
         showLogo
       };
       
-      // Save to backend as a custom template
-      const response = await apiRequest('POST', '/api/custom-templates', {
+      // Create the data to send to the API
+      const templateData = {
         name: customName,
         baseTemplateId: Number(template.id), // Ensure it's a number
         customization: customizationData,
         description: `Custom version of ${template.name}`
-      });
+      };
+      
+      console.log("Sending data to API:", templateData);
+      
+      // Save to backend as a custom template
+      const response = await apiRequest('POST', '/api/custom-templates', templateData);
       
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Error response:", errorData);
         throw new Error(errorData.message || 'Failed to save custom template');
       }
       
@@ -170,6 +197,7 @@ export default function AdminTemplateCustomizePage() {
         navigate('/admin/templates');
       }, 1000);
     } catch (error) {
+      console.error("Save error:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to save template customization",
