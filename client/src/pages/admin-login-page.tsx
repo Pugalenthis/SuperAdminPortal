@@ -36,6 +36,7 @@ export default function AdminLoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Important for session cookies to be sent
         body: JSON.stringify(values),
       });
 
