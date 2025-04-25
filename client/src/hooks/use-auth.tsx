@@ -110,39 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (credentials: LoginCredentials) => {
     console.log("Login function called with:", credentials);
     
-    // Direct API call for logging in
-    fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-      credentials: "include"
-    })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error("Login failed");
-        }
-        return res.json();
-      })
-      .then(userData => {
-        console.log("Login fetch response:", userData);
-        queryClient.setQueryData(["/api/user"], userData);
-        refetch();
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        return userData;
-      })
-      .catch(err => {
-        console.error("Login fetch error:", err);
-        toast({
-          title: "Login failed",
-          description: err.message || "Invalid credentials",
-          variant: "destructive",
-        });
-      });
+    // Use the mutation instead of direct fetch
+    loginMutation.mutate(credentials);
   };
 
   // Logout function to expose via context

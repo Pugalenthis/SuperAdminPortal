@@ -28,7 +28,6 @@ import { Button } from "@/components/ui/button";
 
 export default function AuthPage() {
   const { toast } = useToast();
-  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setLocation] = useLocation();
   
@@ -37,13 +36,9 @@ export default function AuthPage() {
     setLocation(path);
   }, [setLocation]);
   
-  // Redirect to home if already logged in
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
-
+  // Get auth information
+  const { login, loginLoading, user } = useAuth();
+  
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -52,53 +47,23 @@ export default function AuthPage() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
-    try {
-      console.log("Submitting login form:", values);
-      setIsSubmitting(true);
-      
-      // Direct API call for more reliability
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(values)
-      });
-      
-      const responseData = await response.json();
-      
-      if (response.ok) {
-        console.log("Login successful:", responseData);
-        
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        
-        // Use wouter navigation instead of window.location
-        navigate('/');
-      } else {
-        console.error("Login failed:", responseData);
-        
-        toast({
-          title: "Login failed",
-          description: responseData.message || "Invalid credentials",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error during form submission:", error);
-      
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+  // Reset submitting state when login loading changes
+  useEffect(() => {
+    setIsSubmitting(loginLoading);
+  }, [loginLoading]);
+  
+  // Redirect to home if user is already logged in
+  useEffect(() => {
+    if (user) {
+      console.log("User is logged in, redirecting to home");
+      navigate('/');
     }
+  }, [user, navigate]);
+
+  function onSubmit(values: z.infer<typeof loginSchema>) {
+    console.log("Submitting login form:", values);
+    login(values);
+    // Redirect will happen automatically via the useEffect that watches for user changes
   }
 
   return (
