@@ -43,6 +43,14 @@ export default function AdminDashboardPage() {
     retry: false,
     enabled: !!adminInfo // Only fetch when admin info is available
   });
+  
+  // Fetch business cards
+  const { data: businessCards = [], isLoading: cardsLoading } = useQuery({
+    queryKey: ['/api/cards'],
+    queryFn: getQueryFn({ on401: "throw" }),
+    retry: false,
+    enabled: !!adminInfo // Only fetch when admin info is available
+  });
 
   // Handle logout
   const handleLogout = async () => {
@@ -165,7 +173,7 @@ export default function AdminDashboardPage() {
                   <CreditCard className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold">0</p>
+                  <p className="text-3xl font-bold">{cardsLoading ? '...' : businessCards.length}</p>
                   <p className="text-muted-foreground">Active cards</p>
                 </div>
               </div>
