@@ -50,6 +50,13 @@ export interface IStorage {
   getAllCardTemplates(): Promise<CardTemplate[]>;
   getCardTemplate(id: number): Promise<CardTemplate | undefined>;
   
+  // Custom Template operations
+  getCustomTemplate(id: number): Promise<CustomTemplate | undefined>;
+  getCustomTemplatesByAdminId(adminId: number): Promise<CustomTemplate[]>;
+  createCustomTemplate(template: InsertCustomTemplate): Promise<CustomTemplate>;
+  updateCustomTemplate(id: number, template: Partial<InsertCustomTemplate>): Promise<CustomTemplate | undefined>;
+  deleteCustomTemplate(id: number): Promise<boolean>;
+  
   // Session store
   sessionStore: session.Store;
   
@@ -252,6 +259,47 @@ export class DatabaseStorage implements IStorage {
   async getCardTemplate(id: number): Promise<CardTemplate | undefined> {
     const [template] = await db.select().from(cardTemplates).where(eq(cardTemplates.id, id));
     return template;
+  }
+  
+  // Custom Template methods
+  async getCustomTemplate(id: number): Promise<CustomTemplate | undefined> {
+    const [template] = await db.select().from(customTemplates).where(eq(customTemplates.id, id));
+    return template;
+  }
+  
+  async getCustomTemplatesByAdminId(adminId: number): Promise<CustomTemplate[]> {
+    return await db.select()
+      .from(customTemplates)
+      .where(eq(customTemplates.adminId, adminId))
+      .orderBy(desc(customTemplates.updatedAt));
+  }
+  
+  async createCustomTemplate(template: InsertCustomTemplate): Promise<CustomTemplate> {
+    const [newTemplate] = await db.insert(customTemplates).values(template).returning();
+    return newTemplate;
+  }
+  
+  async updateCustomTemplate(id: number, template: Partial<InsertCustomTemplate>): Promise<CustomTemplate | undefined> {
+    // Update the updatedAt field automatically
+    const updateData = {
+      ...template,
+      updatedAt: new Date()
+    };
+    
+    const [updatedTemplate] = await db
+      .update(customTemplates)
+      .set(updateData)
+      .where(eq(customTemplates.id, id))
+      .returning();
+    return updatedTemplate;
+  }
+  
+  async deleteCustomTemplate(id: number): Promise<boolean> {
+    const result = await db
+      .delete(customTemplates)
+      .where(eq(customTemplates.id, id))
+      .returning({ id: customTemplates.id });
+    return result.length > 0;
   }
 
   // Helper methods

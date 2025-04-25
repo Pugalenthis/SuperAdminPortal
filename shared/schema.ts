@@ -46,11 +46,24 @@ export const cardTemplates = pgTable("card_templates", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Custom Templates table
+export const customTemplates = pgTable("custom_templates", {
+  id: serial("id").primaryKey(),
+  adminId: integer("admin_id").notNull().references(() => admins.id, { onDelete: 'cascade' }),
+  baseTemplateId: integer("base_template_id").notNull().references(() => cardTemplates.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  customization: json("customization").notNull().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Business Cards table
 export const businessCards = pgTable("business_cards", {
   id: serial("id").primaryKey(),
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: 'cascade' }),
   templateId: integer("template_id").notNull().references(() => cardTemplates.id),
+  customTemplateId: integer("custom_template_id").references(() => customTemplates.id),
   customization: json("customization"),
   uniqueUrl: text("unique_url").notNull().unique(),
   status: text("status").notNull().default("active"),
@@ -61,6 +74,7 @@ export const businessCards = pgTable("business_cards", {
 // Define relations
 export const adminsRelations = relations(admins, ({ many }) => ({
   employees: many(employees),
+  customTemplates: many(customTemplates),
 }));
 
 export const employeesRelations = relations(employees, ({ one, many }) => ({
@@ -71,6 +85,17 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
   businessCards: many(businessCards),
 }));
 
+export const customTemplatesRelations = relations(customTemplates, ({ one }) => ({
+  admin: one(admins, {
+    fields: [customTemplates.adminId],
+    references: [admins.id],
+  }),
+  baseTemplate: one(cardTemplates, {
+    fields: [customTemplates.baseTemplateId],
+    references: [cardTemplates.id],
+  }),
+}));
+
 export const businessCardsRelations = relations(businessCards, ({ one }) => ({
   employee: one(employees, {
     fields: [businessCards.employeeId],
@@ -79,6 +104,10 @@ export const businessCardsRelations = relations(businessCards, ({ one }) => ({
   template: one(cardTemplates, {
     fields: [businessCards.templateId],
     references: [cardTemplates.id],
+  }),
+  customTemplate: one(customTemplates, {
+    fields: [businessCards.customTemplateId],
+    references: [customTemplates.id],
   }),
 }));
 
@@ -101,6 +130,11 @@ export type Employee = typeof employees.$inferSelect;
 export const insertCardTemplateSchema = createInsertSchema(cardTemplates);
 export type InsertCardTemplate = z.infer<typeof insertCardTemplateSchema>;
 export type CardTemplate = typeof cardTemplates.$inferSelect;
+
+// Schema for creating a new custom template
+export const insertCustomTemplateSchema = createInsertSchema(customTemplates);
+export type InsertCustomTemplate = z.infer<typeof insertCustomTemplateSchema>;
+export type CustomTemplate = typeof customTemplates.$inferSelect;
 
 // Schema for creating a new business card
 export const insertBusinessCardSchema = createInsertSchema(businessCards);
