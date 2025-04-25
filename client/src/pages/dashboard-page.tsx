@@ -1,48 +1,116 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
-import { useEffect } from "react";
-import { logoutUser } from "@/lib/auth";
+import { Loader2, LogOut, Plus, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Admin } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [userData, setUserData] = useState<{id: number, email: string} | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState(true);
 
-  // Fetch admins
-  const { data: admins = [], isLoading: isLoadingAdmins } = useQuery<Admin[]>({
-    queryKey: ["/api/admins"],
-    enabled: !!user, // Only run if user is authenticated
-  });
+  // Fetch user data directly
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("User data fetched:", data);
+          setUserData(data);
+        } else {
+          console.error("Failed to fetch user data");
+          // Force redirect to login if not authenticated
+          window.location.href = '/auth';
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        window.location.href = '/auth';
+      } finally {
+        setIsLoadingUser(false);
+      }
+    }
+    
+    fetchUserData();
+  }, []);
+
+  // Fetch admins directly
+  useEffect(() => {
+    async function fetchAdmins() {
+      if (!userData) return; // Don't fetch if not logged in
+      
+      try {
+        setIsLoadingAdmins(true);
+        const response = await fetch('/api/admins', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Admins fetched:", data);
+          setAdmins(data);
+        } else {
+          console.error("Failed to fetch admins");
+          toast({
+            title: "Error",
+            description: "Failed to load admin data",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching admins:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load admin data",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingAdmins(false);
+      }
+    }
+    
+    if (userData) {
+      fetchAdmins();
+    }
+  }, [userData, toast]);
 
   const handleLogout = async () => {
-    const result = await logoutUser();
-    if (result.success) {
-      toast({
-        title: "Logged out",
-        description: "You have been logged out successfully."
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
       });
-      setLocation("/login");
-    } else {
+      
+      if (response.ok) {
+        toast({
+          title: "Logged out",
+          description: "You have been logged out successfully."
+        });
+        window.location.href = '/auth';
+      } else {
+        toast({
+          title: "Logout failed",
+          description: "Failed to log out",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
       toast({
         title: "Logout failed",
-        description: result.message,
+        description: "An unexpected error occurred",
         variant: "destructive"
       });
     }
   };
 
-  // Debug state
-  useEffect(() => {
-    console.log("Dashboard state:", { user, isLoading });
-  }, [user, isLoading]);
-
-  if (isLoading) {
+  if (isLoadingUser) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -50,11 +118,9 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) {
-    useEffect(() => {
-      setLocation("/login");
-    }, [setLocation]);
-    
+  if (!userData) {
+    // This shouldn't happen since we redirect in the useEffect, but just in case
+    window.location.href = '/auth';
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -68,8 +134,9 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Logged in as: {user.email}</span>
+            <span className="text-sm text-gray-600">Logged in as: {userData.email}</span>
             <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
           </div>
@@ -139,6 +206,7 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-900">
+                              <Trash className="h-4 w-4 mr-2" />
                               Delete
                             </Button>
                           </td>
@@ -150,7 +218,10 @@ export default function DashboardPage() {
               )}
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button>Add Admin</Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Admin
+              </Button>
             </CardFooter>
           </Card>
         </div>
