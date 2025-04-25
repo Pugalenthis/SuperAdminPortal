@@ -76,7 +76,11 @@ export default function AdminTemplatesPage() {
   });
   
   // Fetch custom templates
-  const { data: customTemplates, isLoading: customTemplatesLoading } = useQuery({
+  const { 
+    data: customTemplates, 
+    isLoading: customTemplatesLoading, 
+    refetch: refetchCustomTemplates 
+  } = useQuery({
     queryKey: ['/api/custom-templates'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
@@ -113,12 +117,20 @@ export default function AdminTemplatesPage() {
         return oldData.filter(template => template.id !== result.deletedId);
       });
       
-      // Also invalidate the query to refresh from server
-      queryClient.invalidateQueries({ queryKey: ['/api/custom-templates'] });
+      // Manually refetch the custom templates
+      refetchCustomTemplates();
       
       // Close the delete modal
       setDeleteModalOpen(false);
       setTemplateToDelete(null);
+      
+      // Force a refresh of the component state
+      setActiveTab(prev => {
+        // Toggle to a different tab and back to force a re-render
+        const temp = prev === 'my-templates' ? 'all' : 'standard';
+        setTimeout(() => setActiveTab('my-templates'), 10);
+        return temp;
+      });
     },
     onError: (error: Error) => {
       toast({
