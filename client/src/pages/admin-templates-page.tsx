@@ -31,6 +31,26 @@ export default function AdminTemplatesPage() {
   const initialTab = location.includes('tab=my-templates') ? 'my-templates' : 'all';
   const [activeTab, setActiveTab] = useState(initialTab);
   
+  // Effect to refresh custom templates when My Templates tab is selected
+  useEffect(() => {
+    if (activeTab === 'my-templates') {
+      // Immediately refresh custom templates data when tab is selected
+      refetchCustomTemplates?.();
+    }
+  }, [activeTab, refetchCustomTemplates]);
+  
+  // Effect to ensure data is refreshed when component mounts with location hash
+  useEffect(() => {
+    // Check if we came from template customization page (has tab=my-templates)
+    if (location.includes('tab=my-templates')) {
+      // Force immediate refresh of custom templates data
+      refetchCustomTemplates?.();
+      
+      // Additional logging to help debug
+      console.log("Forcing refresh of custom templates on page load due to URL parameter");
+    }
+  }, [location, refetchCustomTemplates]);
+  
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [isCustomTemplate, setIsCustomTemplate] = useState(false);

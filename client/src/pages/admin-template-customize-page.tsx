@@ -183,20 +183,32 @@ export default function AdminTemplateCustomizePage() {
         throw new Error(errorData.message || 'Failed to save custom template');
       }
       
-      // Success - show toast and invalidate template cache
+      // Success - show toast
       toast({
         title: "Custom template saved",
         description: "Your template has been saved to My Templates",
       });
       
-      // Invalidate the custom templates query to refresh the list
+      // First invalidate the custom templates query
       queryClient.invalidateQueries({ queryKey: ['/api/custom-templates'] });
       
+      // Explicitly fetch the latest data before redirecting
+      try {
+        await queryClient.fetchQuery({ 
+          queryKey: ['/api/custom-templates'],
+          queryFn: getQueryFn({ on401: "throw" })
+        });
+        console.log("Custom templates refreshed successfully");
+      } catch (error) {
+        console.error("Error refreshing templates data:", error);
+      }
+      
       // Redirect to templates page with query parameter to auto-select My Templates tab
+      // Add a small delay to ensure data is fully loaded
       setTimeout(() => {
         // Add a query parameter to indicate we should show the My Templates tab
         navigate('/admin/templates?tab=my-templates');
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error("Save error:", error);
       toast({
