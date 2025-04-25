@@ -728,11 +728,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const adminId = req.user!.id;
       
-      // Validate request body
-      const validatedData = insertCustomTemplateSchema.parse({
+      // Log what we received for debugging
+      console.log("Creating custom template with data:", {
         ...req.body,
         adminId
       });
+      
+      // Make sure baseTemplateId is a number
+      const dataToValidate = {
+        ...req.body,
+        adminId,
+        baseTemplateId: req.body.baseTemplateId ? Number(req.body.baseTemplateId) : undefined
+      };
+      
+      // Validate request body
+      const validatedData = insertCustomTemplateSchema.parse(dataToValidate);
       
       // Check if base template exists
       const baseTemplate = await storage.getCardTemplate(validatedData.baseTemplateId);
@@ -749,6 +759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation error details:", error.errors);
         return res.status(400).json({ 
           message: "Validation error", 
           errors: error.errors 

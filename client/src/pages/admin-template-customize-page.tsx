@@ -146,7 +146,7 @@ export default function AdminTemplateCustomizePage() {
       // Save to backend as a custom template
       const response = await apiRequest('POST', '/api/custom-templates', {
         name: customName,
-        baseTemplateId: template.id,
+        baseTemplateId: Number(template.id), // Ensure it's a number
         customization: customizationData,
         description: `Custom version of ${template.name}`
       });
