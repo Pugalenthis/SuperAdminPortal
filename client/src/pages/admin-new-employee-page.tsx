@@ -10,7 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
+import { getQueryFn, queryClient } from "@/lib/queryClient";
 
 // Employee form schema
 const employeeFormSchema = z.object({
@@ -81,6 +81,7 @@ export default function AdminNewEmployeePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
+        credentials: 'include'
       });
       
       const data = await response.json();
@@ -89,13 +90,19 @@ export default function AdminNewEmployeePage() {
         throw new Error(data.message || "Failed to create employee");
       }
       
+      // Invalidate the employees cache to force a refresh when navigating to the employees page
+      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      
       toast({
         title: "Employee created successfully",
         description: `${values.firstName} ${values.lastName} has been added`,
       });
       
-      // Navigate to employee list
-      navigate("/admin/employees");
+      // Add a small delay to ensure the invalidation completes
+      setTimeout(() => {
+        // Navigate to employee list
+        navigate("/admin/employees");
+      }, 100);
     } catch (error) {
       console.error("Error creating employee:", error);
       toast({
