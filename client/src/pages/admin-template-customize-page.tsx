@@ -135,21 +135,44 @@ export default function AdminTemplateCustomizePage() {
     if (!template) return;
     
     try {
-      // At this stage, we're just showing a simulated save functionality
-      toast({
-        title: "Template customization saved",
-        description: "Your customization settings have been saved",
+      // Create a customization data object with all settings
+      const customizationData = {
+        colors,
+        fonts,
+        layout,
+        showLogo
+      };
+      
+      // Save to backend as a custom template
+      const response = await apiRequest('POST', '/api/custom-templates', {
+        name: customName,
+        baseTemplateId: template.id,
+        customization: customizationData,
+        description: `Custom version of ${template.name}`
       });
       
-      // In Phase 3, we would actually save this to the backend
-      // For now, we just show a success message and redirect
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save custom template');
+      }
+      
+      // Success - show toast and invalidate template cache
+      toast({
+        title: "Custom template saved",
+        description: "Your template has been saved to My Templates",
+      });
+      
+      // Invalidate the custom templates query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/custom-templates'] });
+      
+      // Redirect to templates page
       setTimeout(() => {
         navigate('/admin/templates');
-      }, 1500);
+      }, 1000);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save template customization",
+        description: error instanceof Error ? error.message : "Failed to save template customization",
         variant: "destructive"
       });
     }

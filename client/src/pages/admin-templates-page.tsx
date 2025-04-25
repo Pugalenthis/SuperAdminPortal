@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { getQueryFn } from "@/lib/queryClient";
+import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { CardTemplate } from "@shared/schema";
-import { Search, Grid, PlusCircle, Bookmark, Palette, Eye } from "lucide-react";
+import { CardTemplate, CustomTemplate } from "@shared/schema";
+import { 
+  Search, Grid, PlusCircle, Bookmark, Palette, Eye, 
+  Trash2, Edit, Star, FileEdit, User, Folder 
+} from "lucide-react";
 import { TemplatePreviewModal } from "@/components/template-preview-modal";
 
 export default function AdminTemplatesPage() {
@@ -26,6 +29,9 @@ export default function AdminTemplatesPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [isCustomTemplate, setIsCustomTemplate] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<CustomTemplate | null>(null);
   
   // Navigation function
   const navigate = useCallback((path: string) => {
@@ -54,7 +60,7 @@ export default function AdminTemplatesPage() {
     }
   }, [user, navigate, toast]);
   
-  // Fetch templates
+  // Fetch standard templates
   const { data: templates, isLoading: templatesLoading } = useQuery({
     queryKey: ['/api/card-templates'],
     queryFn: getQueryFn({ on401: "throw" }),
@@ -69,16 +75,83 @@ export default function AdminTemplatesPage() {
     }
   });
   
+  // Fetch custom templates
+  const { data: customTemplates, isLoading: customTemplatesLoading } = useQuery({
+    queryKey: ['/api/custom-templates'],
+    queryFn: getQueryFn({ on401: "throw" }),
+    retry: false,
+    enabled: !!user && user.userType === 'admin',
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to load custom templates",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Delete custom template mutation
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: number) => {
+      const response = await apiRequest('DELETE', `/api/custom-templates/${templateId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete template');
+      }
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Template deleted",
+        description: "The custom template has been deleted successfully."
+      });
+      
+      // Invalidate custom templates query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/custom-templates'] });
+      
+      // Close the delete modal
+      setDeleteModalOpen(false);
+      setTemplateToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete template",
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Filter templates based on search query
   const filteredTemplates = templates?.filter((template: CardTemplate) => {
     return template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
            (template.description && template.description.toLowerCase().includes(searchQuery.toLowerCase()));
   }) || [];
   
-  // Handle preview click
-  const handlePreviewClick = (templateId: number) => {
+  // Filter custom templates based on search query
+  const filteredCustomTemplates = customTemplates?.filter((template: CustomTemplate) => {
+    return template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           (template.description && template.description.toLowerCase().includes(searchQuery.toLowerCase()));
+  }) || [];
+  
+  // Handle preview click for standard templates
+  const handlePreviewClick = (templateId: number, isCustom = false) => {
     setSelectedTemplateId(templateId);
+    setIsCustomTemplate(isCustom);
     setPreviewModalOpen(true);
+  };
+  
+  // Handle delete click for custom templates
+  const handleDeleteClick = (template: CustomTemplate) => {
+    setTemplateToDelete(template);
+    setDeleteModalOpen(true);
+  };
+  
+  // Handle confirming the delete action
+  const confirmDelete = () => {
+    if (templateToDelete) {
+      deleteTemplateMutation.mutate(templateToDelete.id);
+    }
   };
   
   // Loading state
@@ -133,6 +206,10 @@ export default function AdminTemplatesPage() {
             <TabsTrigger value="all">All Templates</TabsTrigger>
             <TabsTrigger value="standard">Standard</TabsTrigger>
             <TabsTrigger value="premium">Premium</TabsTrigger>
+            <TabsTrigger value="my-templates">
+              <Folder className="h-4 w-4 mr-2" />
+              My Templates
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="all" className="mt-6">
@@ -337,6 +414,90 @@ export default function AdminTemplatesPage() {
               )}
             </div>
           </TabsContent>
+          
+          {/* My Templates tab */}
+          <TabsContent value="my-templates" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCustomTemplates && filteredCustomTemplates.length > 0 ? (
+                filteredCustomTemplates.map((template: CustomTemplate) => (
+                  <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="aspect-video bg-muted relative">
+                      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                        <FileEdit className="h-12 w-12" />
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600">
+                          Custom
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>{template.name}</CardTitle>
+                        <Star className="h-5 w-5 text-amber-400 fill-amber-400" />
+                      </div>
+                      <CardDescription>
+                        {template.description || "Your customized template"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter className="flex flex-col gap-3">
+                      <div className="flex space-x-2 w-full">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={() => handlePreviewClick(template.id, true)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => navigate(`/admin/new-card?customTemplate=${template.id}`)}
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Use Template
+                        </Button>
+                      </div>
+                      <div className="flex space-x-2 w-full">
+                        <Button 
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => navigate(`/admin/template/custom/${template.id}/edit`)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleDeleteClick(template)}
+                          disabled={deleteTemplateMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full flex flex-col items-center justify-center p-12 text-center">
+                  <FileEdit className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">No custom templates yet</h3>
+                  <p className="text-muted-foreground mt-2 mb-6">
+                    {searchQuery 
+                      ? `No custom templates match your search for "${searchQuery}".` 
+                      : "You haven't created any custom templates yet. Customize a standard template to get started."}
+                  </p>
+                  <Button onClick={() => setActiveTab('standard')}>
+                    <Palette className="h-4 w-4 mr-2" />
+                    Customize a Template
+                  </Button>
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
       
@@ -345,7 +506,47 @@ export default function AdminTemplatesPage() {
         open={previewModalOpen}
         onOpenChange={setPreviewModalOpen}
         templateId={selectedTemplateId}
+        isCustomTemplate={isCustomTemplate}
       />
+      
+      {/* Delete Confirmation Dialog */}
+      {templateToDelete && (
+        <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 ${deleteModalOpen ? 'block' : 'hidden'}`}>
+          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-2">Confirm Deletion</h3>
+            <p className="text-muted-foreground mb-4">
+              Are you sure you want to delete the custom template <span className="font-medium">{templateToDelete.name}</span>? 
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-2 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setTemplateToDelete(null);
+                }}
+                disabled={deleteTemplateMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={deleteTemplateMutation.isPending}
+              >
+                {deleteTemplateMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-background border-t-transparent animate-spin mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>Delete</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
