@@ -70,8 +70,14 @@ export default function AuthPage() {
 
   function onSubmit(values: z.infer<typeof loginSchema>) {
     console.log("Submitting login form:", values);
-    login(values);
-    // Redirect will happen automatically via the useEffect that watches for user changes
+    setIsSubmitting(true); // Set submitting state manually
+    
+    // Add a small delay to make sure the button updates visually
+    setTimeout(() => {
+      login(values);
+      // Note: Redirect will happen automatically via the useEffect that watches for user changes
+      // The loginLoading effect will reset isSubmitting when login process completes
+    }, 100);
   }
 
   return (
