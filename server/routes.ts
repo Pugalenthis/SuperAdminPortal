@@ -370,6 +370,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all card templates (alternative endpoint)
+  app.get("/api/card-templates", isAuthenticated, async (req, res) => {
+    try {
+      const templates = await storage.getAllCardTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+  
   // Get all business cards for an admin
   app.get("/api/cards", isAdmin, async (req, res) => {
     try {

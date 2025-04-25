@@ -41,6 +41,7 @@ export const cardTemplates = pgTable("card_templates", {
   name: text("name").notNull(),
   description: text("description"),
   template: json("template").notNull(),
+  type: text("type").default("standard"),
   isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

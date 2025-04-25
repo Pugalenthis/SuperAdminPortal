@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { CardTemplate } from "@shared/schema";
 
 // UI Components
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,8 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input"; 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid, Search, PlusCircle } from "lucide-react";
+import { Grid, Search, PlusCircle, ArrowLeft, Bookmark } from "lucide-react";
 
 export default function AdminTemplatesPage() {
   const { toast } = useToast();
@@ -50,12 +53,25 @@ export default function AdminTemplatesPage() {
   }, [user, navigate, toast]);
   
   // Fetch all templates
-  const { data: templates = [], isLoading: templatesLoading } = useQuery({
+  const { data: templates = [], isLoading: templatesLoading } = useQuery<CardTemplate[]>({
     queryKey: ['/api/card-templates'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
     enabled: !!user && user.userType === 'admin'
   });
+  
+  // Filter templates based on search query
+  const filteredTemplates = useMemo(() => {
+    if (!templates || templates.length === 0) return [];
+    
+    if (!searchQuery) return templates;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return templates.filter((template) => 
+      template.name.toLowerCase().includes(query) || 
+      (template.description && template.description.toLowerCase().includes(query))
+    );
+  }, [templates, searchQuery]);
   
   // Loading state
   if (userLoading || templatesLoading) {
@@ -108,17 +124,27 @@ export default function AdminTemplatesPage() {
           
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {templates.length > 0 ? (
-                templates.map((template: any) => (
-                  <Card key={template.id} className="overflow-hidden">
+              {filteredTemplates.length > 0 ? (
+                filteredTemplates.map((template: CardTemplate) => (
+                  <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="aspect-video bg-muted relative">
                       {/* This would ideally display a preview image of the template */}
                       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                         <Grid className="h-12 w-12" />
                       </div>
+                      {template.type === 'premium' && (
+                        <div className="absolute top-2 right-2">
+                          <Badge className="bg-gradient-to-r from-amber-500 to-yellow-300 hover:from-amber-600 hover:to-yellow-400">
+                            Premium
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                     <CardHeader>
-                      <CardTitle>{template.name}</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>{template.name}</CardTitle>
+                        <Bookmark className="h-5 w-5 text-muted-foreground" />
+                      </div>
                       <CardDescription>
                         {template.description || "A professional business card template"}
                       </CardDescription>
@@ -147,7 +173,9 @@ export default function AdminTemplatesPage() {
                   <Grid className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium">No templates found</h3>
                   <p className="text-muted-foreground mt-2">
-                    There are no templates available at the moment.
+                    {searchQuery 
+                      ? `No templates match your search for "${searchQuery}".` 
+                      : "There are no templates available at the moment."}
                   </p>
                 </div>
               )}
@@ -156,58 +184,83 @@ export default function AdminTemplatesPage() {
           
           <TabsContent value="standard" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {templates
-                .filter((template: any) => template.type === 'standard' || !template.type)
-                .map((template: any) => (
-                  <Card key={template.id} className="overflow-hidden">
-                    <div className="aspect-video bg-muted relative">
-                      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                        <Grid className="h-12 w-12" />
-                      </div>
-                    </div>
-                    <CardHeader>
-                      <CardTitle>{template.name}</CardTitle>
-                      <CardDescription>
-                        {template.description || "A professional business card template"}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardFooter className="flex justify-between">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          toast({
-                            title: "Preview",
-                            description: `Previewing ${template.name} template`,
-                          });
-                        }}
-                      >
-                        Preview
-                      </Button>
-                      <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
-                        Use Template
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="premium" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {templates
-                .filter((template: any) => template.type === 'premium')
+              {filteredTemplates
+                .filter((template: CardTemplate) => template.type === 'standard' || !template.type)
                 .length > 0 ? (
-                templates
-                  .filter((template: any) => template.type === 'premium')
-                  .map((template: any) => (
-                    <Card key={template.id} className="overflow-hidden">
+                filteredTemplates
+                  .filter((template: CardTemplate) => template.type === 'standard' || !template.type)
+                  .map((template: CardTemplate) => (
+                    <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="aspect-video bg-muted relative">
                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                           <Grid className="h-12 w-12" />
                         </div>
                       </div>
                       <CardHeader>
-                        <CardTitle>{template.name}</CardTitle>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>{template.name}</CardTitle>
+                          <Bookmark className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <CardDescription>
+                          {template.description || "A professional business card template"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardFooter className="flex justify-between">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            toast({
+                              title: "Preview",
+                              description: `Previewing ${template.name} template`,
+                            });
+                          }}
+                        >
+                          Preview
+                        </Button>
+                        <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
+                          Use Template
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))
+              ) : (
+                <div className="col-span-full flex flex-col items-center justify-center p-12 text-center">
+                  <Grid className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">No standard templates found</h3>
+                  <p className="text-muted-foreground mt-2">
+                    {searchQuery 
+                      ? `No standard templates match your search for "${searchQuery}".` 
+                      : "There are no standard templates available at the moment."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="premium" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTemplates
+                .filter((template: CardTemplate) => template.type === 'premium')
+                .length > 0 ? (
+                filteredTemplates
+                  .filter((template: CardTemplate) => template.type === 'premium')
+                  .map((template: CardTemplate) => (
+                    <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="aspect-video bg-muted relative">
+                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                          <Grid className="h-12 w-12" />
+                        </div>
+                        <div className="absolute top-2 right-2">
+                          <Badge className="bg-gradient-to-r from-amber-500 to-yellow-300 hover:from-amber-600 hover:to-yellow-400">
+                            Premium
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>{template.name}</CardTitle>
+                          <Bookmark className="h-5 w-5 text-muted-foreground" />
+                        </div>
                         <CardDescription>
                           {template.description || "A professional business card template"}
                         </CardDescription>
@@ -235,7 +288,9 @@ export default function AdminTemplatesPage() {
                   <PlusCircle className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium">No premium templates</h3>
                   <p className="text-muted-foreground mt-2">
-                    Premium templates will be available in future updates.
+                    {searchQuery 
+                      ? `No premium templates match your search for "${searchQuery}".` 
+                      : "Premium templates will be available in future updates."}
                   </p>
                 </div>
               )}
