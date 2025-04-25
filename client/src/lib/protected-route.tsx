@@ -39,12 +39,14 @@ export function ProtectedRoute({
   const getRedirectPath = () => {
     if (!user) return "/auth";
     
-    if (superAdminOnly && user.userType !== 'superadmin') {
-      return "/"; // Redirect admins to their dashboard
+    // If user is an admin trying to access superadmin route
+    if (superAdminOnly && user.userType === 'admin') {
+      return "/admin/dashboard"; // Redirect to admin dashboard
     }
     
-    if (adminOnly && user.userType !== 'admin') {
-      return "/"; // Redirect superadmins to their dashboard
+    // If user is a superadmin trying to access admin route
+    if (adminOnly && user.userType === 'superadmin') {
+      return "/"; // Redirect to superadmin dashboard
     }
     
     return "/auth"; // Default fallback

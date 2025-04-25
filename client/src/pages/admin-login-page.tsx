@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,6 +20,22 @@ export default function AdminLoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [, setLocation] = useLocation();
+  const { user, login, loginLoading } = useAuth();
+
+  // Redirect based on user role if already logged in
+  useEffect(() => {
+    if (user) {
+      console.log("User is already logged in:", user.userType);
+      
+      if (user.userType === 'admin') {
+        // Admin is already logged in, redirect to admin dashboard
+        setLocation('/admin/dashboard');
+      } else if (user.userType === 'superadmin') {
+        // Superadmin is logged in, redirect to superadmin dashboard
+        setLocation('/');
+      }
+    }
+  }, [user, setLocation]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -28,42 +45,15 @@ export default function AdminLoginPage() {
     },
   });
 
-  async function onSubmit(values: LoginFormValues) {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // Important for session cookies to be sent
-        body: JSON.stringify(values),
-      });
+  // Reset submitting state when login loading changes
+  useEffect(() => {
+    setIsLoading(loginLoading);
+  }, [loginLoading]);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
-
-      console.log("Admin login successful:", data);
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${data.orgName}!`,
-      });
-
-      // Navigate to admin dashboard
-      setLocation("/admin/dashboard");
-    } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Please check your credentials and try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  function onSubmit(values: LoginFormValues) {
+    console.log("Submitting admin login form:", values);
+    login(values);
+    // Redirect will happen automatically via the useEffect that watches for user changes
   }
 
   return (

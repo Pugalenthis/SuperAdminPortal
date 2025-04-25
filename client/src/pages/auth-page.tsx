@@ -52,11 +52,19 @@ export default function AuthPage() {
     setIsSubmitting(loginLoading);
   }, [loginLoading]);
   
-  // Redirect to home if user is already logged in
+  // Redirect based on user role if already logged in
   useEffect(() => {
     if (user) {
-      console.log("User is logged in, redirecting to home");
-      navigate('/');
+      console.log("User is logged in, redirecting based on role:", user.userType);
+      
+      if (user.userType === 'superadmin') {
+        navigate('/'); // Super admin dashboard
+      } else if (user.userType === 'admin') {
+        navigate('/admin/dashboard'); // Regular admin dashboard
+      } else {
+        console.error("Unknown user type:", user.userType);
+        navigate('/');
+      }
     }
   }, [user, navigate]);
 
