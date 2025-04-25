@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CardTemplate } from "@shared/schema";
+import { useState, useEffect } from "react";
+import { CardTemplate, CustomTemplate } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -16,31 +16,70 @@ interface TemplatePreviewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   templateId: number | null;
+  isCustomTemplate?: boolean;
 }
 
 export function TemplatePreviewModal({
   open,
   onOpenChange,
-  templateId
+  templateId,
+  isCustomTemplate = false
 }: TemplatePreviewModalProps) {
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
   
-  const { data: template } = useQuery<CardTemplate>({
+  // Fetch standard template
+  const { data: standardTemplate } = useQuery<CardTemplate>({
     queryKey: ['/api/card-templates', templateId],
     queryFn: getQueryFn({ on401: "throw" }),
-    enabled: !!templateId && open,
+    enabled: !!templateId && open && !isCustomTemplate,
   });
   
-  // Default preview styles
-  const [previewColors] = useState({
+  // Fetch custom template
+  const { data: customTemplate } = useQuery<CustomTemplate>({
+    queryKey: ['/api/custom-templates', templateId],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!templateId && open && isCustomTemplate,
+  });
+  
+  // Determine which template to use for display
+  const template = isCustomTemplate ? customTemplate : standardTemplate;
+  
+  // Preview styles with defaults
+  const [previewColors, setPreviewColors] = useState({
     primary: "#0f766e",
     secondary: "#f59e0b",
     text: "#1e293b",
     background: "#ffffff"
   });
+  
+  const [previewFonts, setPreviewFonts] = useState({
+    headingFont: "Inter",
+    bodyFont: "Roboto"
+  });
+  
+  // Update preview styles when custom template is loaded
+  useEffect(() => {
+    if (isCustomTemplate && customTemplate?.customization) {
+      const customization = customTemplate.customization as any;
+      
+      if (customization.colors) {
+        setPreviewColors(prevColors => ({
+          ...prevColors,
+          ...customization.colors
+        }));
+      }
+      
+      if (customization.fonts) {
+        setPreviewFonts(prevFonts => ({
+          ...prevFonts,
+          ...customization.fonts
+        }));
+      }
+    }
+  }, [isCustomTemplate, customTemplate]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,6 +100,7 @@ export function TemplatePreviewModal({
               style={{ 
                 backgroundColor: previewColors.background,
                 color: previewColors.text,
+                fontFamily: previewFonts.bodyFont
               }}
             >
               <div className="flex flex-1 flex-col justify-center items-center">
@@ -77,7 +117,10 @@ export function TemplatePreviewModal({
                 
                 <h3 
                   className="text-xl font-bold mb-1" 
-                  style={{ color: previewColors.primary }}
+                  style={{ 
+                    color: previewColors.primary,
+                    fontFamily: previewFonts.headingFont
+                  }}
                 >
                   John Smith
                 </h3>
@@ -94,7 +137,10 @@ export function TemplatePreviewModal({
                   <p className="text-sm">+1 (555) 123-4567</p>
                   <p 
                     className="text-sm mt-2 font-semibold"
-                    style={{ color: previewColors.primary }}
+                    style={{ 
+                      color: previewColors.primary,
+                      fontFamily: previewFonts.headingFont
+                    }}
                   >
                     {user?.orgName || 'Company Name'}
                   </p>
