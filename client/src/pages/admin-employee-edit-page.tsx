@@ -135,13 +135,23 @@ export default function AdminEmployeeEditPage() {
       // If we got here, it was successful
       console.log("Employee updated successfully");
       
-      // Force refetch to ensure we get the latest data
-      await queryClient.invalidateQueries({ queryKey: [`/api/employees/${employeeId}`] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      // Completely purge all employee-related data from the cache
+      console.log("Purging all employee data from cache");
       
-      // Force reset the cache to prevent stale data
+      // Remove queries first (complete removal from cache)
+      queryClient.removeQueries({ queryKey: [`/api/employees/${employeeId}`] });
+      queryClient.removeQueries({ queryKey: ['/api/employees'] });
+      
+      // Then wait a bit to ensure cache is cleared
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Then reset to force a refetch
       queryClient.resetQueries({ queryKey: [`/api/employees/${employeeId}`] });
       queryClient.resetQueries({ queryKey: ['/api/employees'] });
+      
+      // Even if we get any existing data, mark it as stale
+      queryClient.invalidateQueries({ queryKey: [`/api/employees/${employeeId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
       
       toast({
         title: "Employee updated successfully",

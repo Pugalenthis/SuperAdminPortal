@@ -148,11 +148,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateEmployee(id: number, employee: Partial<InsertEmployee>): Promise<Employee | undefined> {
+    // First perform the update
     const [updatedEmployee] = await db
       .update(employees)
       .set(employee)
       .where(eq(employees.id, id))
       .returning();
+    
+    // Then fetch the updated employee directly to ensure we have the freshest data
+    // This helps avoid any potential caching issues at the database driver level
+    if (updatedEmployee) {
+      console.log(`Employee ${id} updated. Getting fresh data from database.`);
+      const [freshEmployee] = await db
+        .select()
+        .from(employees)
+        .where(eq(employees.id, id));
+      
+      return freshEmployee;
+    }
+    
     return updatedEmployee;
   }
 
