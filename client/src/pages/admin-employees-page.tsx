@@ -70,26 +70,37 @@ export default function AdminEmployeesPage() {
     enabled: !!user && user.userType === 'admin'
   });
   
-  // Manually refetch employees when component mounts or when redirected from employee creation
+  // Manually refetch employees when component mounts or when redirected from employee creation/edit
   useEffect(() => {
     const manuallyRefreshEmployees = async () => {
       if (user && user.userType === 'admin') {
-        console.log("Manually refreshing employees list");
+        console.log("Manually refreshing employees list with forced cache reset");
+        
+        // Force clear the cache before refetching
+        queryClient.removeQueries({ queryKey: ['/api/employees'] });
+        
+        // Fetch fresh data
         await refetchEmployees();
       }
     };
     
     manuallyRefreshEmployees();
     
-    // Check URL parameters for a refresh signal
+    // Check URL parameters for a refresh signal - now accepts any value as timestamp
     const params = new URLSearchParams(window.location.search);
-    if (params.get('refresh') === 'true') {
-      console.log("Refresh parameter detected, refreshing employees list");
+    if (params.get('refresh')) {
+      console.log("Refresh parameter detected with timestamp, forcing complete data refresh");
+      
       // Remove the refresh parameter from the URL to prevent infinite refreshes
       window.history.replaceState({}, document.title, window.location.pathname);
-      manuallyRefreshEmployees();
+      
+      // This is a stronger refresh for when we come back from edit/create pages
+      queryClient.resetQueries({ queryKey: ['/api/employees'] });
+      setTimeout(() => {
+        manuallyRefreshEmployees();
+      }, 100); // Small delay to ensure cache reset completes
     }
-  }, [user, refetchEmployees]);
+  }, [user, refetchEmployees, queryClient]);
   
   // Filter employees based on search query
   const filteredEmployees = employees.filter((employee: Employee) => {

@@ -135,17 +135,21 @@ export default function AdminEmployeeEditPage() {
       // If we got here, it was successful
       console.log("Employee updated successfully");
       
-      // Invalidate related queries to refresh the data
+      // Force refetch to ensure we get the latest data
       await queryClient.invalidateQueries({ queryKey: [`/api/employees/${employeeId}`] });
       await queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      
+      // Force reset the cache to prevent stale data
+      queryClient.resetQueries({ queryKey: [`/api/employees/${employeeId}`] });
+      queryClient.resetQueries({ queryKey: ['/api/employees'] });
       
       toast({
         title: "Employee updated successfully",
         description: `${values.firstName} ${values.lastName}'s information has been updated`,
       });
       
-      // Navigate back to employee details
-      navigate(`/admin/employees/${employeeId}`);
+      // Navigate back with a refresh trigger
+      navigate(`/admin/employees?refresh=${Date.now()}`);
     } catch (error) {
       console.error("Error updating employee:", error);
       toast({
