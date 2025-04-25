@@ -72,12 +72,21 @@ export default function AuthPage() {
     console.log("Submitting login form:", values);
     setIsSubmitting(true); // Set submitting state manually
     
-    // Use direct fetch with window location change - most reliable approach
-    fetch('/api/login', {
+    // First, try to logout to clear any existing session
+    fetch('/api/logout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
       credentials: 'include'
+    })
+    .then(() => {
+      console.log("Logout completed before login");
+      
+      // Use direct fetch with window location change - most reliable approach
+      return fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+        credentials: 'include'
+      });
     })
     .then(async (res) => {
       if (res.ok) {
@@ -85,9 +94,19 @@ export default function AuthPage() {
         const data = await res.json();
         console.log("Login succeeded:", data);
         
-        // Force navigation to dashboard
-        console.log("Forcing navigation to dashboard");
-        window.location.href = '/'; // For superadmin, always redirect to root
+        // Force navigation to dashboard immediately
+        console.log("Forcing navigation to dashboard now");
+        
+        // Store login state in sessionStorage for the dashboard to detect
+        sessionStorage.setItem('userLoggedIn', 'true');
+        sessionStorage.setItem('userType', data.userType);
+
+        // For superadmin, always redirect to root
+        if (data.userType === 'superadmin') {
+          window.location.replace('/');
+        } else {
+          window.location.replace('/admin/dashboard');
+        }
       } else {
         // If login failed
         console.error("Login failed:", res.status, res.statusText);

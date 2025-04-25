@@ -17,8 +17,13 @@ export default function DashboardPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [adminToDelete, setAdminToDelete] = useState<{id: number, name: string} | null>(null);
 
-  // Fetch user data directly
+  // Fetch user data directly, with session detection
   useEffect(() => {
+    // Check if we have login info in sessionStorage (from the direct login approach)
+    const userLoggedIn = sessionStorage.getItem('userLoggedIn');
+    const userType = sessionStorage.getItem('userType');
+    const userEmail = sessionStorage.getItem('userEmail');
+    
     async function fetchUserData() {
       try {
         const response = await fetch('/api/user', {
@@ -28,21 +33,59 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           console.log("User data fetched:", data);
+          
+          // Check if this is a superadmin
+          if (data.userType !== 'superadmin') {
+            console.log("User is not a superadmin, redirecting to appropriate page");
+            if (data.userType === 'admin') {
+              window.location.replace('/admin/dashboard');
+            } else {
+              window.location.replace('/auth');
+            }
+            return;
+          }
+          
           setUserData(data);
+          
+          // Update session storage with email for future use
+          sessionStorage.setItem('userEmail', data.email);
+          sessionStorage.setItem('userType', data.userType);
+          sessionStorage.setItem('userLoggedIn', 'true');
         } else {
           console.error("Failed to fetch user data");
           // Force redirect to login if not authenticated
-          window.location.href = '/auth';
+          window.location.replace('/auth');
         }
       } catch (error) {
         console.error("Error fetching user:", error);
-        window.location.href = '/auth';
+        window.location.replace('/auth');
       } finally {
         setIsLoadingUser(false);
       }
     }
     
-    fetchUserData();
+    if (userLoggedIn === 'true' && userType === 'superadmin' && userEmail) {
+      // We already have user info in session storage, we can use that directly
+      setUserData({ id: 1, email: userEmail });
+      setIsLoadingUser(false);
+      
+      // Still verify the session in the background
+      fetch('/api/user', {
+        credentials: 'include'
+      })
+      .then(res => {
+        if (!res.ok) {
+          console.log("Session expired, redirecting to login");
+          window.location.replace('/auth');
+        }
+      })
+      .catch(() => {
+        window.location.replace('/auth');
+      });
+    } else {
+      // No session storage data, fetch from API
+      fetchUserData();
+    }
   }, []);
 
   // Function to fetch admins
@@ -88,6 +131,12 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     try {
+      // First clear session storage
+      sessionStorage.removeItem('userLoggedIn');
+      sessionStorage.removeItem('userType');
+      sessionStorage.removeItem('userEmail');
+      
+      // Then call logout API
       const response = await fetch('/api/logout', {
         method: 'POST',
         credentials: 'include'
@@ -98,21 +147,17 @@ export default function DashboardPage() {
           title: "Logged out",
           description: "You have been logged out successfully."
         });
-        window.location.href = '/auth';
+        // Force navigation to login
+        window.location.replace('/auth');
       } else {
-        toast({
-          title: "Logout failed",
-          description: "Failed to log out",
-          variant: "destructive"
-        });
+        console.error("API logout failed, but session storage was cleared");
+        // Still redirect to login since session storage is cleared
+        window.location.replace('/auth');
       }
     } catch (error) {
       console.error("Error during logout:", error);
-      toast({
-        title: "Logout failed",
-        description: "An unexpected error occurred",
-        variant: "destructive"
-      });
+      // Still redirect to login since session storage is cleared
+      window.location.replace('/auth');
     }
   };
 

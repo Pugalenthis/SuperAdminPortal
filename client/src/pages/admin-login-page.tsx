@@ -54,12 +54,21 @@ export default function AdminLoginPage() {
     console.log("Submitting admin login form:", values);
     setIsLoading(true);
     
-    // Use direct fetch with window location change - most reliable approach
-    fetch('/api/login', {
+    // First, try to logout to clear any existing session
+    fetch('/api/logout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
       credentials: 'include'
+    })
+    .then(() => {
+      console.log("Logout completed before admin login");
+      
+      // Use direct fetch with window location change - most reliable approach
+      return fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+        credentials: 'include'
+      });
     })
     .then(async (res) => {
       if (res.ok) {
@@ -67,9 +76,15 @@ export default function AdminLoginPage() {
         const data = await res.json();
         console.log("Admin login succeeded:", data);
         
-        // Force navigation to admin dashboard
-        console.log("Forcing navigation to admin dashboard");
-        window.location.href = '/admin/dashboard'; // For admin, always redirect to admin dashboard
+        // Force navigation to admin dashboard immediately
+        console.log("Forcing navigation to admin dashboard now");
+        
+        // Store login state in sessionStorage for the dashboard to detect
+        sessionStorage.setItem('userLoggedIn', 'true');
+        sessionStorage.setItem('userType', data.userType);
+
+        // For admins, always use replace to avoid back button issues
+        window.location.replace('/admin/dashboard');
       } else {
         // If login failed
         console.error("Admin login failed:", res.status, res.statusText);
