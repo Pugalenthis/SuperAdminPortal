@@ -88,6 +88,12 @@ export default function AdminCardEditPage() {
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
     enabled: !!user && user.userType === 'admin' && !!cardId,
+    onSuccess: (data) => {
+      console.log("Card data received:", data);
+      if (data && templates.length > 0) {
+        console.log("Templates available:", templates);
+      }
+    },
   });
   
   // Fetch all templates for the dropdown
@@ -95,7 +101,10 @@ export default function AdminCardEditPage() {
     queryKey: ['/api/card-templates'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
-    enabled: !!user && user.userType === 'admin'
+    enabled: !!user && user.userType === 'admin',
+    onSuccess: (data) => {
+      console.log("Templates loaded:", data);
+    }
   });
   
   // Form definition
@@ -108,16 +117,23 @@ export default function AdminCardEditPage() {
     },
   });
   
-  // Update form values when card data is loaded
+  // Update form values when card data is loaded AND templates are loaded
   useEffect(() => {
-    if (card) {
+    if (card && templates && templates.length > 0) {
+      // Make sure templateId is a valid number
+      const templateId = typeof card.templateId === 'number' && card.templateId > 0 
+        ? card.templateId 
+        : templates.length > 0 ? templates[0].id : 0;
+      
+      console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
+      
       form.reset({
-        templateId: card.templateId,
+        templateId,
         status: card.status || 'active',
         customization: card.customization || {},
       });
     }
-  }, [card, form]);
+  }, [card, templates, form]);
   
   // Update card mutation
   const updateCardMutation = useMutation({
@@ -217,8 +233,13 @@ export default function AdminCardEditPage() {
                     <FormItem>
                       <FormLabel>Card Template</FormLabel>
                       <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        defaultValue={field.value ? field.value.toString() : ""}
+                        onValueChange={(value) => {
+                          const numValue = parseInt(value, 10);
+                          if (!isNaN(numValue)) {
+                            field.onChange(numValue);
+                          }
+                        }}
+                        value={field.value ? field.value.toString() : undefined}
                       >
                         <FormControl>
                           <SelectTrigger>
