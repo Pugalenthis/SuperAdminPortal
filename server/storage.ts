@@ -1,10 +1,10 @@
 import { 
-  admins, superAdmins, employees, businessCards, cardTemplates,
+  admins, superAdmins, employees, businessCards, cardTemplates, customTemplates,
   type Admin, type InsertAdmin, 
   type SuperAdmin, type InsertSuperAdmin,
   type Employee, type InsertEmployee,
   type BusinessCard, type InsertBusinessCard,
-  type CardTemplate
+  type CardTemplate, type CustomTemplate, type InsertCustomTemplate
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -210,6 +210,7 @@ export class DatabaseStorage implements IStorage {
         employeeId: businessCards.employeeId,
         templateId: businessCards.templateId,
         customization: businessCards.customization,
+        customTemplateId: businessCards.customTemplateId,
         uniqueUrl: businessCards.uniqueUrl,
         status: businessCards.status,
         createdAt: businessCards.createdAt,

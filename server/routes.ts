@@ -6,6 +6,7 @@ import {
   insertAdminSchema, 
   insertEmployeeSchema, 
   insertBusinessCardSchema,
+  insertCustomTemplateSchema,
   employeeFormSchema
 } from "@shared/schema";
 import bcrypt from "bcrypt";
@@ -657,6 +658,181 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching public card:", error);
       res.status(500).json({ message: "Failed to fetch business card" });
+    }
+  });
+
+  /************************************
+   * ADMIN ROUTES - CUSTOM TEMPLATES
+   ************************************/
+  
+  // Get all custom templates for the current admin
+  app.get("/api/custom-templates", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const customTemplates = await storage.getCustomTemplatesByAdminId(adminId);
+      
+      // Enhance templates with base template info
+      const enhancedTemplates = await Promise.all(
+        customTemplates.map(async (template) => {
+          const baseTemplate = await storage.getCardTemplate(template.baseTemplateId);
+          return {
+            ...template,
+            baseTemplate
+          };
+        })
+      );
+      
+      res.json(enhancedTemplates);
+    } catch (error) {
+      console.error("Error fetching custom templates:", error);
+      res.status(500).json({ message: "Failed to fetch custom templates" });
+    }
+  });
+  
+  // Get a specific custom template
+  app.get("/api/custom-templates/:id", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const templateId = parseInt(req.params.id);
+      
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+      
+      const template = await storage.getCustomTemplate(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      // Security check - make sure the template belongs to this admin
+      if (template.adminId !== adminId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the base template
+      const baseTemplate = await storage.getCardTemplate(template.baseTemplateId);
+      
+      res.json({
+        ...template,
+        baseTemplate
+      });
+    } catch (error) {
+      console.error("Error fetching custom template:", error);
+      res.status(500).json({ message: "Failed to fetch custom template" });
+    }
+  });
+  
+  // Create a new custom template
+  app.post("/api/custom-templates", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      
+      // Validate request body
+      const validatedData = insertCustomTemplateSchema.parse({
+        ...req.body,
+        adminId
+      });
+      
+      // Check if base template exists
+      const baseTemplate = await storage.getCardTemplate(validatedData.baseTemplateId);
+      if (!baseTemplate) {
+        return res.status(404).json({ message: "Base template not found" });
+      }
+      
+      // Create the custom template
+      const customTemplate = await storage.createCustomTemplate(validatedData);
+      
+      res.status(201).json({
+        ...customTemplate,
+        baseTemplate
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error creating custom template:", error);
+      res.status(500).json({ message: "Failed to create custom template" });
+    }
+  });
+  
+  // Update a custom template
+  app.put("/api/custom-templates/:id", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const templateId = parseInt(req.params.id);
+      
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+      
+      // Check if template exists and belongs to this admin
+      const template = await storage.getCustomTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      if (template.adminId !== adminId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Update the template (only allowing name, description, and customization to be updated)
+      const { name, description, customization } = req.body;
+      const updateData: any = {};
+      
+      if (name) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (customization) updateData.customization = customization;
+      
+      const updatedTemplate = await storage.updateCustomTemplate(templateId, updateData);
+      
+      // Get the base template
+      const baseTemplate = await storage.getCardTemplate(updatedTemplate!.baseTemplateId);
+      
+      res.json({
+        ...updatedTemplate,
+        baseTemplate
+      });
+    } catch (error) {
+      console.error("Error updating custom template:", error);
+      res.status(500).json({ message: "Failed to update custom template" });
+    }
+  });
+  
+  // Delete a custom template
+  app.delete("/api/custom-templates/:id", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const templateId = parseInt(req.params.id);
+      
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+      
+      // Check if template exists and belongs to this admin
+      const template = await storage.getCustomTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      if (template.adminId !== adminId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Delete the template
+      const success = await storage.deleteCustomTemplate(templateId);
+      
+      if (success) {
+        res.status(200).json({ message: "Template deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete template" });
+      }
+    } catch (error) {
+      console.error("Error deleting custom template:", error);
+      res.status(500).json({ message: "Failed to delete custom template" });
     }
   });
 
