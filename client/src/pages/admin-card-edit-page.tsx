@@ -39,8 +39,13 @@ import { Switch } from "@/components/ui/switch";
 
 // Edit card form schema
 const cardEditFormSchema = z.object({
-  templateId: z.coerce.number(),
-  status: z.string(),
+  templateId: z.coerce.number({
+    required_error: "Please select a template",
+    invalid_type_error: "Template ID must be a number",
+  }),
+  status: z.string({
+    required_error: "Please select a status",
+  }),
   customization: z.record(z.any()).optional(),
 });
 
@@ -237,9 +242,12 @@ export default function AdminCardEditPage() {
                           const numValue = parseInt(value, 10);
                           if (!isNaN(numValue)) {
                             field.onChange(numValue);
+                            // Mark form as dirty
+                            form.formState.dirtyFields.templateId = true;
                           }
                         }}
-                        value={field.value ? field.value.toString() : undefined}
+                        defaultValue={field.value?.toString()}
+                        value={field.value?.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -284,6 +292,8 @@ export default function AdminCardEditPage() {
                           checked={field.value === "active"}
                           onCheckedChange={(checked) => {
                             field.onChange(checked ? "active" : "inactive");
+                            // Mark form as dirty
+                            form.formState.dirtyFields.status = true;
                           }}
                         />
                       </FormControl>
@@ -301,7 +311,7 @@ export default function AdminCardEditPage() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={isSubmitting || !form.formState.isDirty}
+                  disabled={isSubmitting || (!form.formState.isDirty && !form.formState.dirtyFields.templateId && !form.formState.dirtyFields.status)}
                 >
                   {isSubmitting ? (
                     <>
