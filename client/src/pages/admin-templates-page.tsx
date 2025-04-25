@@ -17,12 +17,15 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { CardTemplate } from "@shared/schema";
 import { Search, Grid, PlusCircle, Bookmark, Palette, Eye } from "lucide-react";
+import { TemplatePreviewModal } from "@/components/template-preview-modal";
 
 export default function AdminTemplatesPage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   
   // Navigation function
   const navigate = useCallback((path: string) => {
@@ -152,16 +155,14 @@ export default function AdminTemplatesPage() {
                         {template.description || "A professional business card template"}
                       </CardDescription>
                     </CardHeader>
-                    <CardFooter className="flex justify-between">
-                      <div className="flex space-x-2">
+                    <CardFooter className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex space-x-2 w-full sm:w-auto">
                         <Button 
                           variant="outline" 
+                          className="flex-1 sm:flex-initial"
                           onClick={() => {
-                            // Preview functionality would be added in future phases
-                            toast({
-                              title: "Preview",
-                              description: `Previewing ${template.name} template`,
-                            });
+                            setSelectedTemplateId(template.id);
+                            setPreviewModalOpen(true);
                           }}
                         >
                           <Eye className="h-4 w-4 mr-2" />
@@ -169,13 +170,17 @@ export default function AdminTemplatesPage() {
                         </Button>
                         <Button
                           variant="outline"
+                          className="flex-1 sm:flex-initial"
                           onClick={() => navigate(`/admin/template/${template.id}`)}
                         >
                           <Palette className="h-4 w-4 mr-2" />
                           Customize
                         </Button>
                       </div>
-                      <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
+                      <Button 
+                        className="w-full sm:w-auto" 
+                        onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
+                      >
                         Use Template
                       </Button>
                     </CardFooter>
@@ -218,10 +223,11 @@ export default function AdminTemplatesPage() {
                           {template.description || "A professional business card template"}
                         </CardDescription>
                       </CardHeader>
-                      <CardFooter className="flex justify-between">
-                        <div className="flex space-x-2">
+                      <CardFooter className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex space-x-2 w-full sm:w-auto">
                           <Button 
                             variant="outline" 
+                            className="flex-1 sm:flex-initial"
                             onClick={() => {
                               toast({
                                 title: "Preview",
@@ -234,13 +240,17 @@ export default function AdminTemplatesPage() {
                           </Button>
                           <Button
                             variant="outline"
+                            className="flex-1 sm:flex-initial"
                             onClick={() => navigate(`/admin/template/${template.id}`)}
                           >
                             <Palette className="h-4 w-4 mr-2" />
                             Customize
                           </Button>
                         </div>
-                        <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
+                        <Button 
+                          className="w-full sm:w-auto" 
+                          onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
+                        >
                           Use Template
                         </Button>
                       </CardFooter>
@@ -288,10 +298,11 @@ export default function AdminTemplatesPage() {
                           {template.description || "A professional business card template"}
                         </CardDescription>
                       </CardHeader>
-                      <CardFooter className="flex justify-between">
-                        <div className="flex space-x-2">
+                      <CardFooter className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex space-x-2 w-full sm:w-auto">
                           <Button 
                             variant="outline" 
+                            className="flex-1 sm:flex-initial"
                             onClick={() => {
                               toast({
                                 title: "Preview",
@@ -304,13 +315,17 @@ export default function AdminTemplatesPage() {
                           </Button>
                           <Button
                             variant="outline"
+                            className="flex-1 sm:flex-initial"
                             onClick={() => navigate(`/admin/template/${template.id}`)}
                           >
                             <Palette className="h-4 w-4 mr-2" />
                             Customize
                           </Button>
                         </div>
-                        <Button onClick={() => navigate(`/admin/new-card?template=${template.id}`)}>
+                        <Button 
+                          className="w-full sm:w-auto" 
+                          onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
+                        >
                           Use Template
                         </Button>
                       </CardFooter>
@@ -331,6 +346,13 @@ export default function AdminTemplatesPage() {
           </TabsContent>
         </Tabs>
       </main>
+      
+      {/* Preview Modal */}
+      <TemplatePreviewModal
+        open={previewModalOpen}
+        onOpenChange={setPreviewModalOpen}
+        templateId={selectedTemplateId}
+      />
     </div>
   );
 }
