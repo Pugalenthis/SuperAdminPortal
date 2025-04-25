@@ -80,19 +80,15 @@ export default function AdminLoginPage() {
         description: "Welcome to your organization dashboard!",
       });
       
-      // Use direct navigation with window.location for more reliable redirect
-      if (userData.userType === 'admin') {
-        // Use setTimeout to ensure toast is shown before navigation
-        setTimeout(() => {
-          console.log("Redirecting to admin dashboard");
-          window.location.replace('/admin/dashboard');
-        }, 500);
-      } else if (userData.userType === 'superadmin') {
-        setTimeout(() => {
-          console.log("Redirecting superadmin to main dashboard");
-          window.location.replace('/');
-        }, 500);
-      }
+      // Use the most direct approach possible - hard navigation
+      console.log("Redirecting after admin login");
+      
+      // Force a complete page reload to the appropriate route
+      window.location.href = userData.userType === 'admin' 
+        ? '/admin/dashboard' 
+        : '/';
+        
+      // The code below this point will not execute due to the page reload
     })
     .catch((error) => {
       console.error("Login error:", error);

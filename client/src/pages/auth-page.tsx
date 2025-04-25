@@ -98,19 +98,15 @@ export default function AuthPage() {
         description: "Welcome back!",
       });
       
-      // Use direct navigation with window.location to force a full page reload
-      if (userData.userType === 'superadmin') {
-        // Use setTimeout to ensure toast is shown before navigation
-        setTimeout(() => {
-          console.log("Redirecting to superadmin dashboard");
-          window.location.replace('/');
-        }, 500);
-      } else if (userData.userType === 'admin') {
-        setTimeout(() => {
-          console.log("Redirecting to admin dashboard");
-          window.location.replace('/admin/dashboard');
-        }, 500);
-      }
+      // Use the most direct approach possible - hard navigation
+      console.log("Redirecting after login");
+      
+      // Force a complete page reload to the home route
+      window.location.href = userData.userType === 'superadmin' 
+        ? '/' 
+        : '/admin/dashboard';
+        
+      // The code below this point will not execute due to the page reload
     })
     .catch((error) => {
       console.error("Login error:", error);
