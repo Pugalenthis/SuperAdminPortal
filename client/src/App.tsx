@@ -11,6 +11,7 @@ import AdminEmployeeEditPage from "@/pages/admin-employee-edit-page";
 import AdminNewCardPage from "@/pages/admin-new-card-page";
 import AdminCardsPage from "@/pages/admin-cards-page";
 import AdminCardEditPage from "@/pages/admin-card-edit-page";
+import AdminTemplatesPage from "@/pages/admin-templates-page";
 import CardViewPage from "@/pages/card-view-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { Toaster } from "@/components/ui/toaster";
