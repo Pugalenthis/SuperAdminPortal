@@ -8,10 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { LoginCredentials, SuperAdmin } from "@/types";
+import { useEffect } from "react";
+import { LoginCredentials } from "@shared/schema";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -19,7 +18,7 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { user } = useAuth();
+  const { user, login, loginLoading, isLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -30,45 +29,41 @@ export default function LoginPage() {
       password: "",
     },
   });
+  
+  // Watch for user state changes to redirect after successful login
+  useEffect(() => {
+    if (user) {
+      console.log("User authenticated in LoginPage, redirecting to home");
+      setLocation("/");
+    }
+  }, [user, setLocation]);
 
-  // Create a local login mutation instead of using from AuthContext
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
-    },
-    onSuccess: (user: SuperAdmin) => {
-      console.log("Login successful:", user);
-      queryClient.setQueryData(["/api/user"], user);
-      
-      // Show success toast
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-      
-      // Delay navigation to ensure state is updated
-      setTimeout(() => {
-        setLocation("/");
-      }, 500);
-    },
-    onError: (error: Error) => {
-      console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials",
-        variant: "destructive",
-      });
-    },
-  });
+  // Debug auth state in login page
+  useEffect(() => {
+    console.log("LoginPage auth state:", { user, isLoading });
+  }, [user, isLoading]);
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
       console.log("Submitting login form:", values);
-      loginMutation.mutate(values);
+      login(values as LoginCredentials);
     } catch (error) {
       console.error("Error during form submission:", error);
+      toast({
+        title: "Login failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
+  }
+
+  // Wait for auth state to stabilize before redirecting
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   // Redirect if already logged in
@@ -131,9 +126,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loginMutation.isPending}
+                disabled={loginLoading}
               >
-                {loginMutation.isPending ? (
+                {loginLoading ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
                 Sign In
