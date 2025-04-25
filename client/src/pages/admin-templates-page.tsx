@@ -98,15 +98,22 @@ export default function AdminTemplatesPage() {
         const error = await response.json();
         throw new Error(error.message || 'Failed to delete template');
       }
-      return { success: true };
+      return { success: true, deletedId: templateId };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast({
         title: "Template deleted",
         description: "The custom template has been deleted successfully."
       });
       
-      // Invalidate custom templates query to refresh the list
+      // Immediately update the UI by updating React Query cache
+      queryClient.setQueryData(['/api/custom-templates'], (oldData: CustomTemplate[] | undefined) => {
+        if (!oldData) return [];
+        // Filter out the deleted template
+        return oldData.filter(template => template.id !== result.deletedId);
+      });
+      
+      // Also invalidate the query to refresh from server
       queryClient.invalidateQueries({ queryKey: ['/api/custom-templates'] });
       
       // Close the delete modal
