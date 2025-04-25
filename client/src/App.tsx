@@ -34,6 +34,7 @@ function App() {
         <Route path="/admin/employees/:employeeId/cards/new" component={AdminNewCardPage} />
         <Route path="/admin/cards" component={AdminCardsPage} />
         <Route path="/admin/cards/:cardId/edit" component={AdminCardEditPage} />
+        <Route path="/admin/templates" component={AdminTemplatesPage} />
         
         {/* Public Card View */}
         <Route path="/card/:uniqueUrl" component={CardViewPage} />

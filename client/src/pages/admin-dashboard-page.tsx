@@ -6,7 +6,7 @@ import { Employee } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Users, CreditCard, LogOut } from "lucide-react";
+import { Plus, Users, CreditCard, LogOut, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminUser {
@@ -138,7 +138,7 @@ export default function AdminDashboardPage() {
         </Card>
         
         {/* Main Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader>
               <CardTitle>Employees</CardTitle>
@@ -181,6 +181,29 @@ export default function AdminDashboardPage() {
             <CardFooter>
               <Button variant="outline" className="w-full" onClick={() => navigate('/admin/cards')}>
                 Manage Cards
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Templates</CardTitle>
+              <CardDescription>Explore and select card templates</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Palette className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">New</p>
+                  <p className="text-muted-foreground">Template gallery</p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/admin/templates')}>
+                Browse Templates
               </Button>
             </CardFooter>
           </Card>
