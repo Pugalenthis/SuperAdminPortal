@@ -54,41 +54,54 @@ export default function AdminLoginPage() {
     console.log("Submitting admin login form:", values);
     setIsLoading(true);
     
-    // Use raw fetch for direct control of login process
+    // Create form data with redirect parameter
+    const data = {
+      ...values,
+      redirect: true
+    };
+    
+    // Send the login request with redirect parameter
     fetch('/api/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-      credentials: 'include'
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'text/html,application/json' // Accept both HTML and JSON
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+      redirect: 'follow' // Allow redirects
     })
-    .then(async (res) => {
-      console.log("Admin login response status:", res.status);
+    .then(response => {
+      console.log("Admin login response received, status:", response.status);
+      console.log("Admin login response URL:", response.url);
       
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Login failed");
+      // If response URL has changed, it means we were redirected - follow it
+      if (response.redirected || response.url.includes('/admin/dashboard') || response.url === '/' || response.url.includes('?error=')) {
+        console.log("Following redirect to:", response.url);
+        window.location.href = response.url;
+        return null;
       }
       
-      return res.json();
-    })
-    .then((userData) => {
-      console.log("Admin login successful:", userData);
+      // If not redirected but successful, handle the JSON response
+      if (response.ok) {
+        return response.json().then(userData => {
+          console.log("Admin login successful with JSON response:", userData);
+          
+          // Show success toast
+          toast({
+            title: "Login successful",
+            description: "Welcome to your organization dashboard!",
+          });
+          
+          // Redirect based on user type
+          const redirectUrl = userData.redirectUrl || (userData.userType === 'admin' ? '/admin/dashboard' : '/');
+          console.log("Redirecting to:", redirectUrl);
+          window.location.href = redirectUrl;
+        });
+      }
       
-      // Show success toast
-      toast({
-        title: "Login successful",
-        description: "Welcome to your organization dashboard!",
-      });
-      
-      // Use the most direct approach possible - hard navigation
-      console.log("Redirecting after admin login");
-      
-      // Force a complete page reload to the appropriate route
-      window.location.href = userData.userType === 'admin' 
-        ? '/admin/dashboard' 
-        : '/';
-        
-      // The code below this point will not execute due to the page reload
+      // Handle error cases
+      throw new Error("Login failed: " + response.statusText);
     })
     .catch((error) => {
       console.error("Login error:", error);

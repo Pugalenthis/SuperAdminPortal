@@ -136,6 +136,11 @@ export function setupAuth(app: Express) {
   app.post("/api/login", (req, res, next) => {
     console.log("Login attempt for:", req.body.email);
     
+    // Check if this is an HTML form submission (wants redirect) or API call (wants JSON)
+    const wantsRedirect = req.headers['accept']?.includes('text/html') || 
+                         req.query.redirect === 'true' ||
+                         req.body.redirect === 'true';
+    
     passport.authenticate("local", (err: Error, user: UserType | false, info: any) => {
       if (err) {
         console.error("Login error:", err);
@@ -144,6 +149,9 @@ export function setupAuth(app: Express) {
       
       if (!user) {
         console.log("Login failed - invalid credentials");
+        if (wantsRedirect) {
+          return res.redirect('/auth?error=invalid-credentials');
+        }
         return res.status(401).json({ message: info?.message || "Invalid credentials" });
       }
       
@@ -156,19 +164,28 @@ export function setupAuth(app: Express) {
         console.log("Login successful for:", user.email);
         console.log("Session ID:", req.sessionID);
         
-        // Return different data based on user type
+        // Redirect based on user type if requested
+        if (wantsRedirect) {
+          const redirectUrl = user.userType === 'superadmin' ? '/' : '/admin/dashboard';
+          console.log(`Performing server-side redirect to ${redirectUrl}`);
+          return res.redirect(redirectUrl);
+        }
+        
+        // Otherwise return JSON response
         if (user.userType === 'superadmin') {
           return res.status(200).json({ 
             id: user.id,
             email: user.email,
-            userType: 'superadmin'
+            userType: 'superadmin',
+            redirectUrl: '/'
           });
         } else {
           return res.status(200).json({ 
             id: user.id,
             email: user.email,
             orgName: (user as Admin).orgName,
-            userType: 'admin'
+            userType: 'admin',
+            redirectUrl: '/admin/dashboard'
           });
         }
       });
