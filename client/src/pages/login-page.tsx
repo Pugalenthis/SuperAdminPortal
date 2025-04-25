@@ -50,33 +50,36 @@ export default function LoginPage() {
       console.log("Submitting login form:", values);
       setIsSubmitting(true);
       
-      // Direct login call
-      const result = await loginUser(values as LoginCredentials);
+      // Direct API call without React Query
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(values)
+      });
       
-      if (result.success) {
-        // Show success message
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        
-        // Manually navigate
-        setTimeout(() => {
-          setLocation("/");
-        }, 500);
-      } else {
-        // Show error message
-        toast({
-          title: "Login failed",
-          description: result.message,
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        throw new Error(`Login failed: ${response.statusText}`);
       }
+      
+      const userData = await response.json();
+      console.log("Login successful:", userData);
+      
+      // Show success message
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      
+      // Force immediate navigation
+      window.location.href = "/";
     } catch (error) {
       console.error("Error during form submission:", error);
       toast({
         title: "Login failed",
-        description: "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
