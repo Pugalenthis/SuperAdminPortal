@@ -4,6 +4,8 @@ import { Loader2, LogOut, Plus, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Admin } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { CreateAdminModal } from "@/components/create-admin-modal";
+import { DeleteAdminConfirm } from "@/components/delete-admin-confirm";
 
 export default function DashboardPage() {
   const { toast } = useToast();
@@ -11,6 +13,9 @@ export default function DashboardPage() {
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [isLoadingAdmins, setIsLoadingAdmins] = useState(true);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState<{id: number, name: string} | null>(null);
 
   // Fetch user data directly
   useEffect(() => {
@@ -40,45 +45,46 @@ export default function DashboardPage() {
     fetchUserData();
   }, []);
 
-  // Fetch admins directly
-  useEffect(() => {
-    async function fetchAdmins() {
-      if (!userData) return; // Don't fetch if not logged in
+  // Function to fetch admins
+  const fetchAdmins = async () => {
+    if (!userData) return; // Don't fetch if not logged in
+    
+    try {
+      setIsLoadingAdmins(true);
+      const response = await fetch('/api/admins', {
+        credentials: 'include'
+      });
       
-      try {
-        setIsLoadingAdmins(true);
-        const response = await fetch('/api/admins', {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Admins fetched:", data);
-          setAdmins(data);
-        } else {
-          console.error("Failed to fetch admins");
-          toast({
-            title: "Error",
-            description: "Failed to load admin data",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching admins:", error);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Admins fetched:", data);
+        setAdmins(data);
+      } else {
+        console.error("Failed to fetch admins");
         toast({
           title: "Error",
           description: "Failed to load admin data",
           variant: "destructive"
         });
-      } finally {
-        setIsLoadingAdmins(false);
       }
+    } catch (error) {
+      console.error("Error fetching admins:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load admin data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingAdmins(false);
     }
-    
+  };
+
+  // Fetch admins when user data is loaded
+  useEffect(() => {
     if (userData) {
       fetchAdmins();
     }
-  }, [userData, toast]);
+  }, [userData]);
 
   const handleLogout = async () => {
     try {
@@ -205,7 +211,18 @@ export default function DashboardPage() {
                             {new Date(admin.createdAt).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-900">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-900"
+                              onClick={() => {
+                                setAdminToDelete({
+                                  id: admin.id,
+                                  name: admin.orgName
+                                });
+                                setDeleteModalOpen(true);
+                              }}
+                            >
                               <Trash className="h-4 w-4 mr-2" />
                               Delete
                             </Button>
@@ -218,11 +235,27 @@ export default function DashboardPage() {
               )}
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button>
+              <Button onClick={() => setCreateModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Admin
               </Button>
             </CardFooter>
+            
+            {/* Create Admin Modal */}
+            <CreateAdminModal 
+              open={createModalOpen} 
+              onOpenChange={setCreateModalOpen} 
+              onSuccess={fetchAdmins}
+            />
+            
+            {/* Delete Confirmation */}
+            <DeleteAdminConfirm
+              open={deleteModalOpen}
+              onOpenChange={setDeleteModalOpen}
+              adminId={adminToDelete?.id || null}
+              adminName={adminToDelete?.name || null}
+              onSuccess={fetchAdmins}
+            />
           </Card>
         </div>
       </main>

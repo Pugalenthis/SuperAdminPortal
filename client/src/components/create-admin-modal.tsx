@@ -1,29 +1,47 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Loader2, X } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { CreateAdminForm } from "@/types";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
+// Form schema
 const createAdminSchema = z.object({
-  orgName: z.string().min(1, "Organization name is required"),
-  email: z.string().email("Please enter a valid email"),
+  orgName: z.string().min(2, "Organization name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-interface CreateAdminModalProps {
+export function CreateAdminModal({
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-export function CreateAdminModal({ open, onOpenChange }: CreateAdminModalProps) {
+  onSuccess: () => void;
+}) {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof createAdminSchema>>({
     resolver: zodResolver(createAdminSchema),
@@ -34,46 +52,61 @@ export function CreateAdminModal({ open, onOpenChange }: CreateAdminModalProps) 
     },
   });
 
-  const createAdminMutation = useMutation({
-    mutationFn: async (data: CreateAdminForm) => {
-      const res = await apiRequest("POST", "/api/admins", data);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admins"] });
-      toast({
-        title: "Admin Created",
-        description: "Admin organization has been successfully created.",
+  async function onSubmit(values: z.infer<typeof createAdminSchema>) {
+    try {
+      setIsSubmitting(true);
+      
+      // API call to create admin
+      const response = await fetch("/api/admins", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(values)
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create admin");
+      }
+      
+      // Success message
+      toast({
+        title: "Admin created",
+        description: `${values.orgName} admin account has been created successfully.`,
+      });
+      
+      // Close modal and reset form
       form.reset();
       onOpenChange(false);
-    },
-    onError: (error: Error) => {
+      
+      // Refresh admin list
+      onSuccess();
+    } catch (error) {
+      console.error("Error creating admin:", error);
       toast({
         title: "Failed to create admin",
-        description: error.message,
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
-    },
-  });
-
-  async function onSubmit(values: z.infer<typeof createAdminSchema>) {
-    await createAdminMutation.mutateAsync(values);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Admin Organization</DialogTitle>
-          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
+          <DialogTitle>Create New Admin</DialogTitle>
+          <DialogDescription>
+            Add a new organization admin account to the platform.
+          </DialogDescription>
         </DialogHeader>
-
+        
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
               name="orgName"
@@ -81,62 +114,52 @@ export function CreateAdminModal({ open, onOpenChange }: CreateAdminModalProps) 
                 <FormItem>
                   <FormLabel>Organization Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Acme Corporation" {...field} />
+                    <Input placeholder="Acme Corp" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+            
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Admin Email</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="admin@example.com" 
-                      type="email"
-                      {...field} 
-                    />
+                    <Input type="email" placeholder="admin@organization.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+            
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Initial Password</FormLabel>
+                  <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="••••••••" 
-                      type="password"
-                      {...field} 
-                    />
+                    <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+            
             <DialogFooter className="pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={createAdminMutation.isPending}
-              >
-                {createAdminMutation.isPending ? (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
                 Create Admin
