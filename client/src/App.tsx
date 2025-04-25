@@ -9,6 +9,7 @@ import AdminNewEmployeePage from "@/pages/admin-new-employee-page";
 import AdminEmployeeDetailPage from "@/pages/admin-employee-detail-page";
 import AdminEmployeeEditPage from "@/pages/admin-employee-edit-page";
 import AdminNewCardPage from "@/pages/admin-new-card-page";
+import AdminCardsPage from "@/pages/admin-cards-page";
 import CardViewPage from "@/pages/card-view-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { Toaster } from "@/components/ui/toaster";
@@ -29,6 +30,7 @@ function App() {
         <Route path="/admin/employees/:employeeId" component={AdminEmployeeDetailPage} />
         <Route path="/admin/employees/:employeeId/edit" component={AdminEmployeeEditPage} />
         <Route path="/admin/employees/:employeeId/cards/new" component={AdminNewCardPage} />
+        <Route path="/admin/cards" component={AdminCardsPage} />
         
         {/* Public Card View */}
         <Route path="/card/:uniqueUrl" component={CardViewPage} />

@@ -375,7 +375,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const adminId = req.user.id;
       const cards = await storage.getBusinessCardsByAdminId(adminId);
-      res.json(cards);
+      
+      // Enhance cards with employee details and template info
+      const enhancedCards = await Promise.all(
+        cards.map(async (card) => {
+          const [employee, template] = await Promise.all([
+            storage.getEmployee(card.employeeId),
+            storage.getCardTemplate(card.templateId)
+          ]);
+          
+          return {
+            ...card,
+            employee,
+            template
+          };
+        })
+      );
+      
+      // Set headers to prevent caching issues
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      res.json(enhancedCards);
     } catch (error) {
       console.error("Error fetching cards:", error);
       res.status(500).json({ message: "Failed to fetch business cards" });
