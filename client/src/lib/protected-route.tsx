@@ -1,8 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
-import { useEffect } from "react";
-import { queryClient } from "@/lib/queryClient";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export function ProtectedRoute({
   path,
@@ -11,39 +11,45 @@ export function ProtectedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
-  try {
-    const { user, isLoading } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
+  // Direct check for authentication status
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        console.log("ProtectedRoute: Directly checking auth status...");
+        const response = await apiRequest("GET", "/api/user");
+        
+        if (response.ok) {
+          console.log("ProtectedRoute: User is authenticated");
+          setIsAuthenticated(true);
+        } else {
+          console.log("ProtectedRoute: User is not authenticated");
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("ProtectedRoute: Auth check failed", error);
+        setIsAuthenticated(false);
+      }
+    }
     
-    // Force refetch user data when mounting the protected route
-    useEffect(() => {
-      console.log("ProtectedRoute mounted: forcing refresh of user data");
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-    }, []);
+    checkAuth();
+  }, []);
 
-    // Debugging
-    useEffect(() => {
-      console.log("ProtectedRoute state:", { user, isLoading, path });
-    }, [user, isLoading, path]);
-
-    return (
-      <Route path={path}>
-        {isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : !user ? (
-          <Redirect to="/login" />
-        ) : (
-          <Component />
-        )}
-      </Route>
-    );
-  } catch (error) {
-    console.error("Error in ProtectedRoute:", error);
-    return (
-      <Route path={path}>
+  return (
+    <Route path={path}>
+      {isAuthenticated === null ? (
+        // Loading state
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : isAuthenticated ? (
+        // Authenticated - show component
+        <Component />
+      ) : (
+        // Not authenticated - redirect to login
         <Redirect to="/login" />
-      </Route>
-    );
-  }
+      )}
+    </Route>
+  );
 }
