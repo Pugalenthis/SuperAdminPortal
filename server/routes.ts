@@ -210,7 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Update an employee
+  // Update an employee (PUT)
   app.put("/api/employees/:id", isAdmin, async (req, res) => {
     try {
       const adminId = req.user.id;
@@ -244,6 +244,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errors: error.errors 
         });
       }
+      console.error("Error updating employee:", error);
+      res.status(500).json({ message: "Failed to update employee" });
+    }
+  });
+  
+  // Update an employee (PATCH)
+  app.patch("/api/employees/:id", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user.id;
+      const employeeId = parseInt(req.params.id);
+      
+      if (isNaN(employeeId)) {
+        return res.status(400).json({ message: "Invalid employee ID" });
+      }
+      
+      // Process the request body before validation
+      let processedData = { ...req.body };
+      
+      // Clean profile image URL if it exists (handling potentially problematic characters)
+      if (processedData.profileImage) {
+        try {
+          // Decode if it's already encoded
+          processedData.profileImage = decodeURIComponent(processedData.profileImage);
+        } catch (e) {
+          // If there's an error decoding, just use the original
+          console.log("URL decoding error, using original:", e);
+        }
+      }
+      
+      // Get current employee data
+      const employee = await storage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+      
+      if (employee.adminId !== adminId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Merge with existing data for validation
+      const mergedData = {
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        email: employee.email,
+        phone: employee.phone || "",
+        title: employee.title,
+        department: employee.department || "",
+        profileImage: employee.profileImage || "",
+        ...processedData
+      };
+      
+      // Validate data
+      const validatedData = employeeFormSchema.parse(mergedData);
+      
+      // Update the employee
+      const updatedEmployee = await storage.updateEmployee(employeeId, validatedData);
+      
+      res.json(updatedEmployee);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      
+      if (error instanceof SyntaxError && error.message.includes('JSON')) {
+        return res.status(400).json({ 
+          message: "Invalid JSON in request body. The profile image URL may contain characters that need to be encoded." 
+        });
+      }
+      
       console.error("Error updating employee:", error);
       res.status(500).json({ message: "Failed to update employee" });
     }

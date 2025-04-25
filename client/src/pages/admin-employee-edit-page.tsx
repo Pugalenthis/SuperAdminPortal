@@ -103,20 +103,37 @@ export default function AdminEmployeeEditPage() {
     
     setIsSubmitting(true);
     try {
+      // Clean values before sending to avoid any issues with special characters
+      const cleanData = {
+        ...values,
+        // Sanitize the URL by encoding any problematic characters
+        profileImage: values.profileImage ? encodeURI(values.profileImage) : "",
+      };
+
+      console.log("Submitting employee update with data:", cleanData);
+      
       const response = await fetch(`/api/employees/${employeeId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(cleanData),
         credentials: 'include'
       });
       
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || "Failed to update employee");
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          throw new Error(data.message || "Failed to update employee");
+        } else {
+          const text = await response.text();
+          throw new Error(`Server error: ${response.status} - ${text}`);
+        }
       }
+      
+      // If we got here, it was successful
+      console.log("Employee updated successfully");
       
       // Invalidate related queries to refresh the data
       await queryClient.invalidateQueries({ queryKey: [`/api/employees/${employeeId}`] });
@@ -133,7 +150,7 @@ export default function AdminEmployeeEditPage() {
       console.error("Error updating employee:", error);
       toast({
         title: "Failed to update employee",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description: error instanceof Error ? error.message : "An unexpected JSON parsing error occurred. Try simplifying the profile image URL.",
         variant: "destructive",
       });
     } finally {
