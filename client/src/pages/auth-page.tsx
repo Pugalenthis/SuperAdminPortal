@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@shared/schema";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 import {
   Card,
@@ -26,7 +28,21 @@ import { Button } from "@/components/ui/button";
 
 export default function AuthPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setLocation] = useLocation();
+  
+  // Navigation function
+  const navigate = useCallback((path: string) => {
+    setLocation(path);
+  }, [setLocation]);
+  
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -61,8 +77,8 @@ export default function AuthPage() {
           description: "Welcome back!",
         });
         
-        // Forcefully reload the page to ensure proper session handling
-        window.location.href = "/";
+        // Use wouter navigation instead of window.location
+        navigate('/');
       } else {
         console.error("Login failed:", responseData);
         
