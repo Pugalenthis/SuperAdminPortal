@@ -75,6 +75,12 @@ export default function AdminTemplatesPage() {
            (template.description && template.description.toLowerCase().includes(searchQuery.toLowerCase()));
   }) || [];
   
+  // Handle preview click
+  const handlePreviewClick = (templateId: number) => {
+    setSelectedTemplateId(templateId);
+    setPreviewModalOpen(true);
+  };
+  
   // Loading state
   if (userLoading || templatesLoading) {
     return (
@@ -160,10 +166,7 @@ export default function AdminTemplatesPage() {
                         <Button 
                           variant="outline" 
                           className="flex-1 sm:flex-initial"
-                          onClick={() => {
-                            setSelectedTemplateId(template.id);
-                            setPreviewModalOpen(true);
-                          }}
+                          onClick={() => handlePreviewClick(template.id)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           Preview
@@ -228,12 +231,7 @@ export default function AdminTemplatesPage() {
                           <Button 
                             variant="outline" 
                             className="flex-1 sm:flex-initial"
-                            onClick={() => {
-                              toast({
-                                title: "Preview",
-                                description: `Previewing ${template.name} template`,
-                              });
-                            }}
+                            onClick={() => handlePreviewClick(template.id)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
                             Preview
@@ -303,12 +301,7 @@ export default function AdminTemplatesPage() {
                           <Button 
                             variant="outline" 
                             className="flex-1 sm:flex-initial"
-                            onClick={() => {
-                              toast({
-                                title: "Preview",
-                                description: `Previewing ${template.name} template`,
-                              });
-                            }}
+                            onClick={() => handlePreviewClick(template.id)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
                             Preview
