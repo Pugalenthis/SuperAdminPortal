@@ -63,12 +63,33 @@ export default function AdminEmployeesPage() {
   }, [user, navigate, toast]);
   
   // Fetch employees
-  const { data: employees = [], isLoading: employeesLoading } = useQuery({
+  const { data: employees = [], isLoading: employeesLoading, refetch: refetchEmployees } = useQuery({
     queryKey: ['/api/employees'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
     enabled: !!user && user.userType === 'admin'
   });
+  
+  // Manually refetch employees when component mounts or when redirected from employee creation
+  useEffect(() => {
+    const manuallyRefreshEmployees = async () => {
+      if (user && user.userType === 'admin') {
+        console.log("Manually refreshing employees list");
+        await refetchEmployees();
+      }
+    };
+    
+    manuallyRefreshEmployees();
+    
+    // Check URL parameters for a refresh signal
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('refresh') === 'true') {
+      console.log("Refresh parameter detected, refreshing employees list");
+      // Remove the refresh parameter from the URL to prevent infinite refreshes
+      window.history.replaceState({}, document.title, window.location.pathname);
+      manuallyRefreshEmployees();
+    }
+  }, [user, refetchEmployees]);
   
   // Filter employees based on search query
   const filteredEmployees = employees.filter((employee: Employee) => {

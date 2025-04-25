@@ -98,11 +98,9 @@ export default function AdminNewEmployeePage() {
         description: `${values.firstName} ${values.lastName} has been added`,
       });
       
-      // Add a small delay to ensure the invalidation completes
-      setTimeout(() => {
-        // Navigate to employee list
-        navigate("/admin/employees");
-      }, 100);
+      // Navigate to employee list with refresh flag in URL
+      // This will trigger the manual refresh in admin-employees-page.tsx
+      navigate("/admin/employees?refresh=true");
     } catch (error) {
       console.error("Error creating employee:", error);
       toast({
