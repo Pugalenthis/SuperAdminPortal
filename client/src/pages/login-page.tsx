@@ -38,11 +38,22 @@ export default function LoginPage() {
       return await res.json();
     },
     onSuccess: (user: SuperAdmin) => {
+      console.log("Login successful:", user);
       queryClient.setQueryData(["/api/user"], user);
-      // Navigate to dashboard on successful login
-      setLocation("/");
+      
+      // Show success toast
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      
+      // Delay navigation to ensure state is updated
+      setTimeout(() => {
+        setLocation("/");
+      }, 500);
     },
     onError: (error: Error) => {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message || "Invalid credentials",
@@ -52,7 +63,12 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
-    loginMutation.mutate(values);
+    try {
+      console.log("Submitting login form:", values);
+      loginMutation.mutate(values);
+    } catch (error) {
+      console.error("Error during form submission:", error);
+    }
   }
 
   // Redirect if already logged in

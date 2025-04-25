@@ -1,6 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
+import { useEffect, useState } from "react";
+import { queryClient } from "@/lib/queryClient";
 
 export function ProtectedRoute({
   path,
@@ -9,8 +11,20 @@ export function ProtectedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+  
   try {
     const { user, isLoading } = useAuth();
+    
+    // Force refetch user data when mounting the protected route
+    useEffect(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    }, []);
+
+    // Debugging
+    useEffect(() => {
+      console.log("ProtectedRoute state:", { user, isLoading, redirectTo });
+    }, [user, isLoading, redirectTo]);
 
     if (isLoading) {
       return (
