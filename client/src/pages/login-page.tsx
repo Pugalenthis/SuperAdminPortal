@@ -8,6 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { LoginCredentials, SuperAdmin } from "@/types";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -15,7 +19,8 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { user, loginMutation } = useAuth();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [, setLocation] = useLocation();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -26,8 +31,28 @@ export default function LoginPage() {
     },
   });
 
+  // Create a local login mutation instead of using from AuthContext
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: LoginCredentials) => {
+      const res = await apiRequest("POST", "/api/login", credentials);
+      return await res.json();
+    },
+    onSuccess: (user: SuperAdmin) => {
+      queryClient.setQueryData(["/api/user"], user);
+      // Navigate to dashboard on successful login
+      setLocation("/");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    },
+  });
+
   async function onSubmit(values: z.infer<typeof loginSchema>) {
-    await loginMutation.mutateAsync(values);
+    loginMutation.mutate(values);
   }
 
   // Redirect if already logged in
@@ -57,7 +82,7 @@ export default function LoginPage() {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="super.admin@example.com"
+                        placeholder="admin@example.com"
                         type="email"
                         autoComplete="email"
                         {...field}
