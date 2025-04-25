@@ -1,11 +1,11 @@
 import { createContext, ReactNode, useContext, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SuperAdmin, LoginCredentials } from "@/types";
+import { User, LoginCredentials } from "@/types";
 import { getQueryFn, apiRequest } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
-  user: SuperAdmin | null;
+  user: User | null;
   isLoading: boolean;
   error: Error | null;
   login: (credentials: LoginCredentials) => void;
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     isLoading,
     refetch
-  } = useQuery<SuperAdmin | null, Error>({
+  } = useQuery<User | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
-    onSuccess: (userData: SuperAdmin) => {
+    onSuccess: (userData: User) => {
       console.log("Login successful, updating auth state");
       
       // Update the query cache with the user data

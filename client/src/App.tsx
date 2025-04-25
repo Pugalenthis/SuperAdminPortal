@@ -15,16 +15,16 @@ function App() {
   return (
     <>
       <Switch>
-        {/* Super Admin Routes */}
-        <ProtectedRoute path="/" component={DashboardPage} />
+        {/* Super Admin Routes - Only accessible by superadmins */}
+        <ProtectedRoute path="/" component={DashboardPage} superAdminOnly={true} />
         <Route path="/auth" component={AuthPage} />
         
-        {/* Admin Routes */}
+        {/* Admin Routes - Only accessible by admins */}
         <Route path="/admin/login" component={AdminLoginPage} />
-        <ProtectedRoute path="/admin/dashboard" component={AdminDashboardPage} />
-        <ProtectedRoute path="/admin/employees" component={AdminEmployeesPage} />
-        <ProtectedRoute path="/admin/employees/new" component={AdminNewEmployeePage} />
-        <ProtectedRoute path="/admin/employees/:employeeId/cards/new" component={AdminNewCardPage} />
+        <ProtectedRoute path="/admin/dashboard" component={AdminDashboardPage} adminOnly={true} />
+        <ProtectedRoute path="/admin/employees" component={AdminEmployeesPage} adminOnly={true} />
+        <ProtectedRoute path="/admin/employees/new" component={AdminNewEmployeePage} adminOnly={true} />
+        <ProtectedRoute path="/admin/employees/:employeeId/cards/new" component={AdminNewCardPage} adminOnly={true} />
         
         {/* Public Card View */}
         <Route path="/card/:uniqueUrl" component={CardViewPage} />

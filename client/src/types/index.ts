@@ -4,12 +4,17 @@ export interface Admin {
   email: string;
   status: string;
   createdAt: Date | string;
+  userType: 'admin';
 }
 
 export interface SuperAdmin {
   id: number;
   email: string;
+  userType: 'superadmin';
 }
+
+// Combined user type for authentication
+export type User = SuperAdmin | Admin;
 
 export interface LoginCredentials {
   email: string;
