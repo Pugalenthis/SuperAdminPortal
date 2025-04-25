@@ -52,8 +52,57 @@ export default function AdminLoginPage() {
 
   function onSubmit(values: LoginFormValues) {
     console.log("Submitting admin login form:", values);
-    login(values);
-    // Redirect will happen automatically via the useEffect that watches for user changes
+    setIsLoading(true);
+    
+    // Use raw fetch for direct control of login process
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+      credentials: 'include'
+    })
+    .then(async (res) => {
+      console.log("Admin login response status:", res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Login failed");
+      }
+      
+      return res.json();
+    })
+    .then((userData) => {
+      console.log("Admin login successful:", userData);
+      
+      // Show success toast
+      toast({
+        title: "Login successful",
+        description: "Welcome to your organization dashboard!",
+      });
+      
+      // Use direct navigation with window.location for more reliable redirect
+      if (userData.userType === 'admin') {
+        // Use setTimeout to ensure toast is shown before navigation
+        setTimeout(() => {
+          console.log("Redirecting to admin dashboard");
+          window.location.replace('/admin/dashboard');
+        }, 500);
+      } else if (userData.userType === 'superadmin') {
+        setTimeout(() => {
+          console.log("Redirecting superadmin to main dashboard");
+          window.location.replace('/');
+        }, 500);
+      }
+    })
+    .catch((error) => {
+      console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    });
   }
 
   return (

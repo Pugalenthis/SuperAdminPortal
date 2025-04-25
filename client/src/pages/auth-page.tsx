@@ -91,8 +91,26 @@ export default function AuthPage() {
     })
     .then((userData) => {
       console.log("Login successful:", userData);
-      // Update the auth context with user data
-      window.location.href = '/'; // Force reload to dashboard
+      
+      // Show success toast
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      
+      // Use direct navigation with window.location to force a full page reload
+      if (userData.userType === 'superadmin') {
+        // Use setTimeout to ensure toast is shown before navigation
+        setTimeout(() => {
+          console.log("Redirecting to superadmin dashboard");
+          window.location.replace('/');
+        }, 500);
+      } else if (userData.userType === 'admin') {
+        setTimeout(() => {
+          console.log("Redirecting to admin dashboard");
+          window.location.replace('/admin/dashboard');
+        }, 500);
+      }
     })
     .catch((error) => {
       console.error("Login error:", error);
