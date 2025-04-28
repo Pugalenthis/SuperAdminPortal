@@ -206,7 +206,7 @@ export default function CardViewPage() {
       >
         {/* Employee Section (Top Section - 1066px × 442px) */}
         <div 
-          className="w-full px-6 py-8"
+          className="w-full px-6 pt-8 pb-5"
           style={{ 
             aspectRatio: '1066/442', // Exact dimensions as specified
             background: styles.background, 
@@ -237,80 +237,39 @@ export default function CardViewPage() {
           
           <Separator className="mb-6" style={{ backgroundColor: `${styles.accent}20` }} />
           
-          {/* Name & Title */}
-          <div className="mb-8">
-            <h1 
-              className="text-3xl font-bold mb-2"
-              style={{ color: styles.textColor }}
-            >
-              {employee.firstName} {employee.lastName}
-            </h1>
-            <p 
-              className="text-base font-medium"
-              style={{ color: styles.accent }}
-            >
-              {employee.title}
-            </p>
-          </div>
-          
-          {/* Two columns for contact and QR Code */}
-          <div className="grid grid-cols-5 gap-6">
-            {/* Contact Information - Left */}
-            <div className="col-span-3 space-y-4">
-              {employee.email && (
-                <div className="flex items-center gap-3">
-                  <Mail 
-                    className="h-4 w-4 flex-shrink-0"
-                    style={{ color: styles.accent }} 
-                  />
-                  <span className="text-sm truncate">{employee.email}</span>
-                </div>
-              )}
-              
-              {employee.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone 
-                    className="h-4 w-4 flex-shrink-0"
-                    style={{ color: styles.accent }} 
-                  />
-                  <span className="text-sm">{employee.phone}</span>
-                </div>
-              )}
-
-              {employee.department && (
-                <div className="flex items-center gap-3">
-                  <MapPin 
-                    className="h-4 w-4 flex-shrink-0"
-                    style={{ color: styles.accent }} 
-                  />
-                  <span className="text-sm">{employee.department}</span>
-                </div>
-              )}
-              
-              <div className="flex items-center gap-3">
-                <Building
-                  className="h-4 w-4 flex-shrink-0"
-                  style={{ color: styles.accent }}
-                />
-                <span className="text-sm">{adminOrgName}</span>
-              </div>
+          {/* Two columns for Name/Title + QR Code */}
+          <div className="grid grid-cols-5 gap-4 mb-6">
+            {/* Name & Title - Left */}
+            <div className="col-span-3">
+              <h1 
+                className="text-3xl font-bold mb-2"
+                style={{ color: styles.textColor }}
+              >
+                {employee.firstName} {employee.lastName}
+              </h1>
+              <p 
+                className="text-base font-medium"
+                style={{ color: styles.accent }}
+              >
+                {employee.title}
+              </p>
             </div>
             
             {/* QR Code - Right */}
             <div className="col-span-2 flex flex-col items-center justify-center">
               <div 
-                className="p-3 bg-white rounded-lg mb-3"
+                className="p-2 bg-white rounded-lg mb-2.5"
                 style={{ 
                   border: `1px solid ${styles.accent}30`,
                   boxShadow: '0 10px 25px rgba(0,0,0,0.08)'
                 }}
               >
                 <QrCode 
-                  className="h-24 w-24" 
+                  className="h-20 w-20" 
                   style={{ color: styles.textColor }}
                 />
               </div>
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-col items-center gap-1">
                 <span 
                   className="text-xs px-3 py-1 rounded-md text-center"
                   style={{ 
@@ -331,6 +290,47 @@ export default function CardViewPage() {
                   Scan to connect
                 </span>
               </div>
+            </div>
+          </div>
+          
+          {/* Contact Information */}
+          <div className="grid grid-cols-1 gap-2.5">
+            {employee.email && (
+              <div className="flex items-center gap-3">
+                <Mail 
+                  className="h-4 w-4 flex-shrink-0"
+                  style={{ color: styles.accent }} 
+                />
+                <span className="text-sm truncate">{employee.email}</span>
+              </div>
+            )}
+            
+            {employee.phone && (
+              <div className="flex items-center gap-3">
+                <Phone 
+                  className="h-4 w-4 flex-shrink-0"
+                  style={{ color: styles.accent }} 
+                />
+                <span className="text-sm">{employee.phone}</span>
+              </div>
+            )}
+
+            {employee.department && (
+              <div className="flex items-center gap-3">
+                <MapPin 
+                  className="h-4 w-4 flex-shrink-0"
+                  style={{ color: styles.accent }} 
+                />
+                <span className="text-sm">{employee.department}</span>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-3">
+              <Building
+                className="h-4 w-4 flex-shrink-0"
+                style={{ color: styles.accent }}
+              />
+              <span className="text-sm">{adminOrgName}</span>
             </div>
           </div>
         </div>
