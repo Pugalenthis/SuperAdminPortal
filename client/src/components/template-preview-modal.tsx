@@ -216,13 +216,25 @@ export function TemplatePreviewModal({
           </div>
         </div>
         
-        <DialogFooter>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 justify-between">
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
           >
             Close
           </Button>
+          {templateId && (
+            <Button 
+              onClick={() => {
+                // Close the modal first
+                onOpenChange(false);
+                // Navigate to the new card page with the current template
+                window.location.href = `/admin/new-card?template=${templateId}${isCustomTemplate ? '&customTemplate=true' : ''}`;
+              }}
+            >
+              Use
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
