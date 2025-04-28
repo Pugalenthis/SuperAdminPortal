@@ -263,7 +263,7 @@ export default function CardViewPage() {
             className="w-full border-t"
             style={{
               aspectRatio: '1066/445',
-              backgroundImage: `url(${companyCard.imagePath})`,
+              backgroundImage: `url(http://localhost:5000${companyCard.imagePath})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
