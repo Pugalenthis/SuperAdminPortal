@@ -103,9 +103,15 @@ export default function AdminCardEditPage() {
       console.log("Card data received:", JSON.stringify(data));
       console.log("Card status from API:", data?.status);
       
-      if (data && data.status) {
-        // Immediately set the card status from the API data
-        setCardStatus(data.status);
+      // Always log the complete data object for debugging
+      console.log("Full card data:", data);
+      
+      // Check if data exists and has a status property (even if it's empty)
+      if (data && 'status' in data) {
+        // Even if status is empty or undefined, we want to capture it
+        const status = data.status || 'inactive';
+        console.log("Setting cardStatus to:", status);
+        setCardStatus(status);
       }
       
       if (data && templates.length > 0) {
@@ -163,24 +169,22 @@ export default function AdminCardEditPage() {
         : templates.length > 0 ? templates[0].id : 0;
       
       // Get the actual card status from API data
-      // Use the exact value from the API with no fallback
-      const status = card.status;
+      // Default to inactive if status is not present or null
+      const status = 'status' in card ? (card.status || 'inactive') : 'inactive';
       
       console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
-      console.log("Card status from API (direct):", status);
+      console.log("Card status from API (with default):", status);
       
-      if (status) {
-        // Update our state variable for card status
-        console.log("Updating cardStatus state to:", status);
-        setCardStatus(status);
-        
-        // Reset form with the correct values
-        form.reset({
-          templateId,
-          status,
-          customization: card.customization || {},
-        });
-      }
+      // Always update our state variable for card status
+      console.log("Updating cardStatus state to:", status);
+      setCardStatus(status);
+      
+      // Reset form with the correct values
+      form.reset({
+        templateId,
+        status,
+        customization: card.customization || {},
+      });
     }
   }, [card, templates, form]);
   
@@ -335,9 +339,8 @@ export default function AdminCardEditPage() {
                       </div>
                       <FormControl>
                         <Switch
+                          // If cardStatus is null, default to assuming it's inactive for safety
                           checked={cardStatus === "active"}
-                          // Don't render the switch until we have a definite cardStatus from the API
-                          disabled={cardStatus === null}
                           onCheckedChange={(checked) => {
                             const newStatus = checked ? "active" : "inactive";
                             console.log("Switch toggled to:", newStatus);
