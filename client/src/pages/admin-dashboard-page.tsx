@@ -6,7 +6,7 @@ import { Employee } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Users, CreditCard, LogOut, Palette } from "lucide-react";
+import { Plus, Users, CreditCard, LogOut, Palette, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminUser {

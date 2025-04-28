@@ -13,6 +13,7 @@ import AdminCardsPage from "@/pages/admin-cards-page";
 import AdminCardEditPage from "@/pages/admin-card-edit-page";
 import AdminTemplatesPage from "@/pages/admin-templates-page";
 import AdminTemplateCustomizePage from "@/pages/admin-template-customize-page";
+import AdminOrganizationPage from "@/pages/admin-organization-page";
 import CardViewPage from "@/pages/card-view-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { Toaster } from "@/components/ui/toaster";
@@ -37,6 +38,7 @@ function App() {
         <Route path="/admin/cards/:cardId/edit" component={AdminCardEditPage} />
         <Route path="/admin/templates" component={AdminTemplatesPage} />
         <Route path="/admin/template/:id" component={AdminTemplateCustomizePage} />
+        <Route path="/admin/organization" component={AdminOrganizationPage} />
         
         {/* Public Card View */}
         <Route path="/card/:uniqueUrl" component={CardViewPage} />
