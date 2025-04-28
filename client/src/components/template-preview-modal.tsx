@@ -60,9 +60,15 @@ export function TemplatePreviewModal({
     bodyFont: "Roboto"
   });
   
-  // Update preview styles when custom template is loaded
+  // Update preview styles when template is loaded - either standard or custom
   useEffect(() => {
+    console.log("Template preview update - isCustom:", isCustomTemplate);
+    console.log("Template data:", isCustomTemplate ? customTemplate : standardTemplate);
+    
     if (isCustomTemplate && customTemplate?.customization) {
+      // For custom templates, use the customization data
+      console.log("Updating preview from custom template:", customTemplate.customization);
+      
       const customization = customTemplate.customization as any;
       
       if (customization.colors) {
@@ -78,8 +84,23 @@ export function TemplatePreviewModal({
           ...customization.fonts
         }));
       }
+    } else if (!isCustomTemplate && standardTemplate?.template) {
+      // For standard templates, use the template data
+      console.log("Updating preview from standard template:", standardTemplate.template);
+      
+      const template = standardTemplate.template as any;
+      
+      // Map standard template properties to our preview colors
+      const templateColors = {
+        primary: template.accent || previewColors.primary,
+        secondary: previewColors.secondary,
+        text: template.textColor || previewColors.text,
+        background: template.background || previewColors.background
+      };
+      
+      setPreviewColors(templateColors);
     }
-  }, [isCustomTemplate, customTemplate]);
+  }, [isCustomTemplate, customTemplate, standardTemplate]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
