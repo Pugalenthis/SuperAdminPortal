@@ -1192,7 +1192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imagePath: publicPath,
         width: dimensions.width,
         height: dimensions.height,
-        status: 'active'
+        isActive: true
       });
       
       res.status(201).json(companyCard);
