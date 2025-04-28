@@ -73,13 +73,24 @@ export default function AdminNewCardPage() {
     }
   });
   
-  // Fetch templates
-  const { data: templates = [], isLoading: templatesLoading } = useQuery<CardTemplate[]>({
-    queryKey: ['/api/templates'],
+  // Fetch standard templates
+  const { data: standardTemplates = [], isLoading: standardTemplatesLoading } = useQuery<CardTemplate[]>({
+    queryKey: ['/api/card-templates'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
     enabled: !!user && user.userType === 'admin'
   });
+
+  // Fetch custom templates
+  const { data: customTemplates = [], isLoading: customTemplatesLoading } = useQuery({
+    queryKey: ['/api/custom-templates'],
+    queryFn: getQueryFn({ on401: "throw" }),
+    retry: false,
+    enabled: !!user && user.userType === 'admin'
+  });
+  
+  // Combine templates
+  const templates = [...standardTemplates, ...customTemplates];
   
   // Get default template ID
   const getDefaultTemplateId = () => {
@@ -109,21 +120,33 @@ export default function AdminNewCardPage() {
   const selectedTemplate = templates.find(t => t.id.toString() === selectedTemplateId);
   
   // Get template styles for preview
-  const getTemplateStyles = (template: CardTemplate | undefined) => {
+  const getTemplateStyles = (template: any) => {
     if (!template) return {};
     
     try {
-      // Parse the template JSON if it's a string
-      const templateData = typeof template.template === 'string' 
-        ? JSON.parse(template.template) 
-        : template.template;
-      
-      return {
-        background: templateData.background || "#ffffff",
-        textColor: templateData.textColor || "#000000",
-        accent: templateData.accent || "#0066cc",
-        layout: templateData.layout || "standard"
-      };
+      // Check if this is a custom template
+      if (template.customization) {
+        // For custom templates, use the customization data
+        const colors = template.customization.colors || {};
+        return {
+          background: colors.background || "#ffffff",
+          textColor: colors.text || "#1e293b",
+          accent: colors.primary || "#0f766e",
+          layout: template.customization.layout || "standard"
+        };
+      } else {
+        // For standard templates
+        const templateData = typeof template.template === 'string' 
+          ? JSON.parse(template.template) 
+          : template.template;
+        
+        return {
+          background: templateData.background || "#ffffff",
+          textColor: templateData.textColor || "#000000",
+          accent: templateData.accent || "#0066cc",
+          layout: templateData.layout || "standard"
+        };
+      }
     } catch (error) {
       console.error("Error parsing template:", error);
       return {
@@ -181,7 +204,7 @@ export default function AdminNewCardPage() {
   };
   
   // Loading state
-  if (userLoading || employeeLoading || templatesLoading) {
+  if (userLoading || employeeLoading || standardTemplatesLoading || customTemplatesLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
