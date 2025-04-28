@@ -517,10 +517,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      // Check if template exists
-      const template = await storage.getCardTemplate(templateId);
+      // Check if template exists - it could be a standard template or a custom template
+      let template = await storage.getCardTemplate(templateId);
+      let customTemplate;
+      let finalTemplateId = templateId;
+      
+      // If not a standard template, check if it's a custom template
       if (!template) {
-        return res.status(404).json({ message: "Template not found" });
+        customTemplate = await storage.getCustomTemplate(templateId);
+        if (!customTemplate) {
+          return res.status(404).json({ message: "Template not found" });
+        }
+        // If it's a custom template, use its base template ID
+        finalTemplateId = customTemplate.baseTemplateId;
       }
       
       // Generate a unique URL based on employee name
@@ -529,7 +538,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the business card
       const card = await storage.createBusinessCard({
         employeeId,
-        templateId,
+        templateId: finalTemplateId, // Use the base template ID if it's a custom template
+        customTemplateId: customTemplate ? templateId : null, // Store the custom template ID if applicable
         customization,
         uniqueUrl,
         status: 'active',
@@ -647,6 +657,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!template) {
         return res.status(404).json({ message: "Template not found" });
+      }
+      
+      // If this card uses a custom template, include that information
+      let customTemplate = null;
+      if (card.customTemplateId) {
+        customTemplate = await storage.getCustomTemplate(card.customTemplateId);
       }
       
       // Combine data and return
