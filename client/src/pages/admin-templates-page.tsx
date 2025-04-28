@@ -121,7 +121,7 @@ export default function AdminTemplatesPage() {
   // Delete custom template mutation
   const deleteTemplateMutation = useMutation({
     mutationFn: async (templateId: number) => {
-      const response = await apiRequest('DELETE', `/api/custom-templates/${templateId}`);
+      const response = await apiRequest(`/api/custom-templates/${templateId}`, 'DELETE');
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to delete template');
