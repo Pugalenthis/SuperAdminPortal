@@ -1,10 +1,11 @@
 import { 
-  admins, superAdmins, employees, businessCards, cardTemplates, customTemplates,
+  admins, superAdmins, employees, businessCards, cardTemplates, customTemplates, companyCards,
   type Admin, type InsertAdmin, 
   type SuperAdmin, type InsertSuperAdmin,
   type Employee, type InsertEmployee,
   type BusinessCard, type InsertBusinessCard,
-  type CardTemplate, type CustomTemplate, type InsertCustomTemplate
+  type CardTemplate, type CustomTemplate, type InsertCustomTemplate,
+  type CompanyCard, type InsertCompanyCard
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -56,6 +57,14 @@ export interface IStorage {
   createCustomTemplate(template: InsertCustomTemplate): Promise<CustomTemplate>;
   updateCustomTemplate(id: number, template: Partial<InsertCustomTemplate>): Promise<CustomTemplate | undefined>;
   deleteCustomTemplate(id: number): Promise<boolean>;
+  
+  // Company Card operations
+  getCompanyCard(id: number): Promise<CompanyCard | undefined>;
+  getCompanyCardsByAdminId(adminId: number): Promise<CompanyCard[]>;
+  getActiveCompanyCardByAdminId(adminId: number): Promise<CompanyCard | undefined>;
+  createCompanyCard(card: InsertCompanyCard): Promise<CompanyCard>;
+  updateCompanyCard(id: number, card: Partial<InsertCompanyCard>): Promise<CompanyCard | undefined>;
+  deleteCompanyCard(id: number): Promise<boolean>;
   
   // Session store
   sessionStore: session.Store;
@@ -321,6 +330,83 @@ export class DatabaseStorage implements IStorage {
       .delete(customTemplates)
       .where(eq(customTemplates.id, id))
       .returning({ id: customTemplates.id });
+    return result.length > 0;
+  }
+  
+  // Company Card methods
+  async getCompanyCard(id: number): Promise<CompanyCard | undefined> {
+    const [card] = await db.select().from(companyCards).where(eq(companyCards.id, id));
+    return card;
+  }
+  
+  async getCompanyCardsByAdminId(adminId: number): Promise<CompanyCard[]> {
+    return await db.select()
+      .from(companyCards)
+      .where(eq(companyCards.adminId, adminId))
+      .orderBy(desc(companyCards.updatedAt));
+  }
+  
+  async getActiveCompanyCardByAdminId(adminId: number): Promise<CompanyCard | undefined> {
+    const [card] = await db.select()
+      .from(companyCards)
+      .where(and(
+        eq(companyCards.adminId, adminId),
+        eq(companyCards.isActive, true)
+      ))
+      .orderBy(desc(companyCards.updatedAt));
+    return card;
+  }
+  
+  async createCompanyCard(card: InsertCompanyCard): Promise<CompanyCard> {
+    // If this is marked as active, deactivate all other company cards for this admin
+    if (card.isActive) {
+      await db.update(companyCards)
+        .set({ isActive: false })
+        .where(and(
+          eq(companyCards.adminId, card.adminId),
+          eq(companyCards.isActive, true)
+        ));
+    }
+    
+    const [newCard] = await db.insert(companyCards).values(card).returning();
+    return newCard;
+  }
+  
+  async updateCompanyCard(id: number, card: Partial<InsertCompanyCard>): Promise<CompanyCard | undefined> {
+    // If this is being marked as active, deactivate all other company cards for this admin
+    if (card.isActive) {
+      const [currentCard] = await db.select().from(companyCards).where(eq(companyCards.id, id));
+      if (currentCard) {
+        await db.update(companyCards)
+          .set({ isActive: false })
+          .where(and(
+            eq(companyCards.adminId, currentCard.adminId),
+            eq(companyCards.isActive, true),
+            sql`${companyCards.id} != ${id}`
+          ));
+      }
+    }
+    
+    // Update the updatedAt field automatically
+    const updateData = {
+      ...card,
+      updatedAt: new Date()
+    };
+    
+    const [updatedCard] = await db
+      .update(companyCards)
+      .set(updateData)
+      .where(eq(companyCards.id, id))
+      .returning();
+    
+    return updatedCard;
+  }
+  
+  async deleteCompanyCard(id: number): Promise<boolean> {
+    const result = await db
+      .delete(companyCards)
+      .where(eq(companyCards.id, id))
+      .returning({ id: companyCards.id });
     return result.length > 0;
   }
 
