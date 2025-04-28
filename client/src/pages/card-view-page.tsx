@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Employee, BusinessCard, CardTemplate, CustomTemplate } from "@shared/schema";
 import { Share2, Download, Mail, Phone, Building, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { EuroBankCardTemplate } from "@/components/euro-bank-card-template";
 
 interface CardViewData {
   card: BusinessCard;
@@ -184,86 +183,70 @@ export default function CardViewPage() {
     );
   }
 
-  // Check if this is a Euro Bank template
-  const isEuroBankTemplate = template?.name === 'Euro Bank' || 
-                            (styles.layout === 'eurobank');
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
       {/* Business Card */}
       <Card className="w-full max-w-md mx-auto overflow-hidden shadow-lg">
-        {isEuroBankTemplate ? (
-          <div className="relative">
-            <EuroBankCardTemplate 
-              employee={employee}
-              primaryColor={styles.accent}
-              secondaryColor={styles.accent}
-              backgroundColor={styles.background}
-              textColor={styles.textColor}
-            />
+        <div 
+          className="p-6"
+          style={{ 
+            background: styles.background,
+            color: styles.textColor
+          }}
+        >
+          {/* Header - Company and Name */}
+          <div className="text-center mb-6">
+            {employee.profileImage && (
+              <div className="mb-4 flex justify-center">
+                <img 
+                  src={employee.profileImage} 
+                  alt={`${employee.firstName} ${employee.lastName}`}
+                  className="w-24 h-24 rounded-full object-cover border-4"
+                  style={{ borderColor: styles.accent }}
+                />
+              </div>
+            )}
+            <h1 
+              className="text-2xl font-bold"
+              style={{ color: styles.accent }}
+            >
+              {employee.firstName} {employee.lastName}
+            </h1>
+            <p className="text-lg opacity-90">{employee.title}</p>
+            {employee.department && (
+              <p className="text-sm opacity-70">{employee.department}</p>
+            )}
           </div>
-        ) : (
-          <div 
-            className="p-6"
-            style={{ 
-              background: styles.background,
-              color: styles.textColor
-            }}
-          >
-            {/* Header - Company and Name */}
-            <div className="text-center mb-6">
-              {employee.profileImage && (
-                <div className="mb-4 flex justify-center">
-                  <img 
-                    src={employee.profileImage} 
-                    alt={`${employee.firstName} ${employee.lastName}`}
-                    className="w-24 h-24 rounded-full object-cover border-4"
-                    style={{ borderColor: styles.accent }}
-                  />
-                </div>
-              )}
-              <h1 
-                className="text-2xl font-bold"
-                style={{ color: styles.accent }}
+          
+          {/* Contact Information */}
+          <div className="space-y-3">
+            {employee.email && (
+              <a 
+                href={`mailto:${employee.email}`}
+                className="flex items-center gap-3 p-2 rounded hover:bg-black/5 transition-colors"
               >
-                {employee.firstName} {employee.lastName}
-              </h1>
-              <p className="text-lg opacity-90">{employee.title}</p>
-              {employee.department && (
-                <p className="text-sm opacity-70">{employee.department}</p>
-              )}
-            </div>
+                <Mail 
+                  className="h-5 w-5 flex-shrink-0"
+                  style={{ color: styles.accent }} 
+                />
+                <span className="text-sm break-all">{employee.email}</span>
+              </a>
+            )}
             
-            {/* Contact Information */}
-            <div className="space-y-3">
-              {employee.email && (
-                <a 
-                  href={`mailto:${employee.email}`}
-                  className="flex items-center gap-3 p-2 rounded hover:bg-black/5 transition-colors"
-                >
-                  <Mail 
-                    className="h-5 w-5 flex-shrink-0"
-                    style={{ color: styles.accent }} 
-                  />
-                  <span className="text-sm break-all">{employee.email}</span>
-                </a>
-              )}
-              
-              {employee.phone && (
-                <a 
-                  href={`tel:${employee.phone}`}
-                  className="flex items-center gap-3 p-2 rounded hover:bg-black/5 transition-colors"
-                >
-                  <Phone 
-                    className="h-5 w-5 flex-shrink-0"
-                    style={{ color: styles.accent }} 
-                  />
-                  <span className="text-sm">{employee.phone}</span>
-                </a>
-              )}
-            </div>
+            {employee.phone && (
+              <a 
+                href={`tel:${employee.phone}`}
+                className="flex items-center gap-3 p-2 rounded hover:bg-black/5 transition-colors"
+              >
+                <Phone 
+                  className="h-5 w-5 flex-shrink-0"
+                  style={{ color: styles.accent }} 
+                />
+                <span className="text-sm">{employee.phone}</span>
+              </a>
+            )}
           </div>
-        )}
+        </div>
         
         {/* Actions */}
         <CardContent className="p-4 border-t">
