@@ -88,7 +88,8 @@ export default function AdminCardEditPage() {
   // Fetch the specific business card
   const { 
     data: card, 
-    isLoading: cardLoading 
+    isLoading: cardLoading,
+    refetch: refetchCard
   } = useQuery({
     queryKey: ['/api/cards', cardId],
     queryFn: getQueryFn({ on401: "throw" }),
@@ -96,6 +97,8 @@ export default function AdminCardEditPage() {
     enabled: !!user && user.userType === 'admin' && !!cardId,
     onSuccess: (data) => {
       console.log("Card data received:", data);
+      console.log("Card status from API:", data?.status);
+      
       if (data && templates.length > 0) {
         console.log("Templates available:", templates);
       }
