@@ -410,18 +410,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const adminId = req.user.id;
       const cards = await storage.getBusinessCardsByAdminId(adminId);
       
-      // Enhance cards with employee details and template info
+      // Enhance cards with employee details, template info, and custom template info if applicable
       const enhancedCards = await Promise.all(
         cards.map(async (card) => {
+          // Get employee and standard template 
           const [employee, template] = await Promise.all([
             storage.getEmployee(card.employeeId),
             storage.getCardTemplate(card.templateId)
           ]);
           
+          // If this card uses a custom template, include that information too
+          let customTemplate = null;
+          if (card.customTemplateId) {
+            customTemplate = await storage.getCustomTemplate(card.customTemplateId);
+          }
+          
           return {
             ...card,
             employee,
-            template
+            template,
+            customTemplate
           };
         })
       );
@@ -685,7 +693,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         card,
         employee,
-        template
+        template,
+        customTemplate
       });
     } catch (error) {
       console.error("Error fetching public card:", error);

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Employee, BusinessCard, CardTemplate } from "@shared/schema";
+import { Employee, BusinessCard, CardTemplate, CustomTemplate } from "@shared/schema";
 import { Share2, Download, Mail, Phone, Building, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,6 +12,7 @@ interface CardViewData {
   card: BusinessCard;
   employee: Employee;
   template: CardTemplate;
+  customTemplate?: CustomTemplate;
 }
 
 export default function CardViewPage() {
@@ -30,32 +31,53 @@ export default function CardViewPage() {
   const employee = data?.employee;
   const card = data?.card;
   const template = data?.template;
+  const customTemplate = data?.customTemplate;
   const customization = card?.customization || {};
 
   // Get template styles
   const getTemplateStyles = () => {
-    if (!template) return {};
+    // Default styles
+    const defaultStyles = {
+      background: "#ffffff",
+      textColor: "#000000",
+      accent: "#0066cc",
+      layout: "standard"
+    };
+    
+    if (!template) return defaultStyles;
     
     try {
-      // Parse the template JSON if it's a string
+      // If we have a custom template, use its styles instead of the base template
+      if (customTemplate) {
+        console.log("Using custom template:", customTemplate);
+        
+        // Parse the custom template JSON if it's a string
+        const customTemplateData = typeof customTemplate.customization === 'string' 
+          ? JSON.parse(customTemplate.customization) 
+          : customTemplate.customization;
+        
+        return {
+          background: customTemplateData.background || defaultStyles.background,
+          textColor: customTemplateData.textColor || defaultStyles.textColor,
+          accent: customTemplateData.accent || defaultStyles.accent,
+          layout: customTemplateData.layout || defaultStyles.layout
+        };
+      }
+      
+      // Otherwise, use the standard template
       const templateData = typeof template.template === 'string' 
         ? JSON.parse(template.template) 
         : template.template;
       
       return {
-        background: templateData.background || "#ffffff",
-        textColor: templateData.textColor || "#000000",
-        accent: templateData.accent || "#0066cc",
-        layout: templateData.layout || "standard"
+        background: templateData.background || defaultStyles.background,
+        textColor: templateData.textColor || defaultStyles.textColor,
+        accent: templateData.accent || defaultStyles.accent,
+        layout: templateData.layout || defaultStyles.layout
       };
     } catch (error) {
       console.error("Error parsing template:", error);
-      return {
-        background: "#ffffff",
-        textColor: "#000000",
-        accent: "#0066cc",
-        layout: "standard"
-      };
+      return defaultStyles;
     }
   };
   
@@ -119,6 +141,21 @@ export default function CardViewPage() {
     );
   }
   
+  // Ensure we have employee data before rendering
+  if (!employee) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 className="text-2xl font-bold mb-2">Employee Information Not Found</h1>
+        <p className="text-muted-foreground mb-6 text-center">
+          The employee information for this business card is missing.
+        </p>
+        <Button asChild variant="outline">
+          <a href="/">Return Home</a>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
       {/* Business Card */}
