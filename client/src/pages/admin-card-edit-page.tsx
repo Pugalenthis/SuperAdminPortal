@@ -351,27 +351,45 @@ export default function AdminCardEditPage() {
       
       console.log(`Template selection check - ID: ${selectedTemplateId}, Is standard: ${isValidStandardTemplate}, Is custom: ${isValidCustomTemplate}`);
       
-      // Determine if this is actually a custom template based on where it exists
-      const actuallyIsCustomTemplate = templateInfo.isCustomTemplate && isValidCustomTemplate;
+      // Get the custom template info if it exists
+      let customTemplate = null;
+      if (isValidCustomTemplate) {
+        customTemplate = customTemplates.find((t: any) => t.id === selectedTemplateId);
+        console.log("Found custom template:", customTemplate);
+      }
       
-      const dataToSubmit = {
-        // For template ID: 
-        // - If using standard template, use the selected ID
-        // - If using custom template, use the base ID or keep existing
-        templateId: actuallyIsCustomTemplate 
-          ? (card?.templateId || 1) // Keep original or use default if using custom template
-          : values.templateId,
-          
-        // For custom template ID:
-        // - If using custom template and the ID exists in custom templates, use it
-        // - Otherwise set to null (using standard template)
-        customTemplateId: actuallyIsCustomTemplate && isValidCustomTemplate
-          ? values.templateId // Use selected ID as customTemplateId if it's a valid custom template
-          : null, // Clear customTemplateId if using standard template
-          
-        status: values.status,
-        customization: values.customization
-      };
+      let dataToSubmit;
+      
+      if (isValidCustomTemplate) {
+        // Using a custom template (from My Templates)
+        dataToSubmit = {
+          // Always use the base template ID from the custom template record
+          templateId: customTemplate?.baseTemplateId || 1,
+          // Set customTemplateId to the selected ID
+          customTemplateId: selectedTemplateId,
+          status: values.status,
+          customization: values.customization
+        };
+        console.log("Using custom template with base template ID:", customTemplate?.baseTemplateId);
+      } else if (isValidStandardTemplate) {
+        // Using a standard template
+        dataToSubmit = {
+          templateId: selectedTemplateId,
+          customTemplateId: null, // Clear any custom template reference
+          status: values.status,
+          customization: values.customization
+        };
+        console.log("Using standard template with ID:", selectedTemplateId);
+      } else {
+        // Fallback to a default template if something goes wrong
+        dataToSubmit = {
+          templateId: 1, // Default to the first template
+          customTemplateId: null,
+          status: values.status,
+          customization: values.customization
+        };
+        console.log("No valid template found, using default template ID 1");
+      }
       
       console.log("Submitting data to server:", dataToSubmit);
       await updateCardMutation.mutateAsync(dataToSubmit as any);
