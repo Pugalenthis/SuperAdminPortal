@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Employee, BusinessCard, CardTemplate, CustomTemplate, CompanyCard } from "@shared/schema";
 import { Share2, Download, Mail, Phone, Building, Briefcase, QrCode, Smartphone, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -194,325 +195,208 @@ export default function CardViewPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-50">
       {/* Business Card - Dual Section Design with exact dimensions */}
       <Card 
-        className="w-full max-w-md mx-auto overflow-hidden relative group"
+        className="w-full max-w-md mx-auto overflow-hidden relative"
         style={{
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.3s ease',
-          transform: 'perspective(1000px) rotateX(0deg)',
-          borderRadius: '12px'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'perspective(1000px) rotateX(2deg) scale(1.01)';
-          e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.1)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg)';
-          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06)',
+          borderRadius: '8px'
         }}
       >
         {/* Employee Section (Top Section - 1066px × 442px) */}
         <div 
-          className="w-full"
+          className="w-full px-6 py-8"
           style={{ 
             aspectRatio: '1066/442',
             background: styles.background, 
             color: styles.textColor,
-            position: 'relative',
-            overflow: 'hidden'
+            borderTop: `4px solid ${styles.accent}`
           }}
         >
-          {/* Background design elements */}
-          <div className="absolute top-0 left-0 w-full h-full opacity-5">
-            <div 
-              className="absolute top-[-150px] right-[-150px] w-[500px] h-[500px] rounded-full" 
-              style={{ backgroundColor: styles.accent }}
-            />
-            <div 
-              className="absolute bottom-[-200px] left-[-200px] w-[400px] h-[400px] rounded-full" 
-              style={{ backgroundColor: styles.accent }}
-            />
+          {/* Company Logo/Name */}
+          <div className="mb-6 flex items-center justify-between">
+            <h2 
+              className="text-base uppercase tracking-wider font-semibold"
+              style={{ color: styles.accent }}
+            >
+              {adminOrgName}
+            </h2>
+            
+            <span 
+              className="text-xs px-3 py-0.5 rounded-full"
+              style={{ 
+                backgroundColor: `${styles.accent}10`,
+                color: styles.accent
+              }}
+            >
+              Digital Card
+            </span>
           </div>
-
-          {/* Two-column layout */}
-          <div className="grid grid-cols-2 h-full relative z-10">
-            {/* Left Side */}
-            <div className="flex flex-col justify-center p-8 relative">
-              <div 
-                className="absolute top-0 bottom-0 right-0 w-[1px]" 
-                style={{
-                  background: `linear-gradient(to bottom, transparent, ${styles.accent}80, transparent)`
-                }}
-              />
+          
+          <Separator className="mb-6" style={{ backgroundColor: `${styles.accent}20` }} />
+          
+          {/* Name & Title */}
+          <div className="mb-8">
+            <h1 
+              className="text-3xl font-bold mb-2"
+              style={{ color: styles.textColor }}
+            >
+              {employee.firstName} {employee.lastName}
+            </h1>
+            <p 
+              className="text-base font-medium"
+              style={{ color: styles.accent }}
+            >
+              {employee.title}
+            </p>
+          </div>
+          
+          {/* Two columns for contact and QR Code */}
+          <div className="grid grid-cols-5 gap-6">
+            {/* Contact Information - Left */}
+            <div className="col-span-3 space-y-4">
+              {employee.email && (
+                <div className="flex items-center gap-3">
+                  <Mail 
+                    className="h-4 w-4 flex-shrink-0"
+                    style={{ color: styles.accent }} 
+                  />
+                  <span className="text-sm truncate">{employee.email}</span>
+                </div>
+              )}
               
-              {/* Name */}
-              <div className="mb-6">
-                <h1 
-                  className="text-3xl font-bold"
+              {employee.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone 
+                    className="h-4 w-4 flex-shrink-0"
+                    style={{ color: styles.accent }} 
+                  />
+                  <span className="text-sm">{employee.phone}</span>
+                </div>
+              )}
+
+              {employee.department && (
+                <div className="flex items-center gap-3">
+                  <MapPin 
+                    className="h-4 w-4 flex-shrink-0"
+                    style={{ color: styles.accent }} 
+                  />
+                  <span className="text-sm">{employee.department}</span>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3">
+                <Building
+                  className="h-4 w-4 flex-shrink-0"
                   style={{ color: styles.accent }}
-                >
-                  {employee.firstName} {employee.lastName}
-                </h1>
-                <p className="text-lg opacity-90 mt-1">{employee.title}</p>
-              </div>
-              
-              {/* Contact Information */}
-              <div className="space-y-4">
-                {employee.email && (
-                  <div className="flex items-center gap-3 group">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                      style={{ backgroundColor: `${styles.accent}15` }}
-                    >
-                      <Mail 
-                        className="h-4 w-4 flex-shrink-0"
-                        style={{ color: styles.accent }} 
-                      />
-                    </div>
-                    <span className="text-sm">{employee.email}</span>
-                  </div>
-                )}
-                
-                {employee.phone && (
-                  <div className="flex items-center gap-3 group">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `${styles.accent}15` }}
-                    >
-                      <Phone 
-                        className="h-4 w-4 flex-shrink-0"
-                        style={{ color: styles.accent }} 
-                      />
-                    </div>
-                    <span className="text-sm">{employee.phone}</span>
-                  </div>
-                )}
-
-                {/* Mobile/WhatsApp - Using phone as fallback */}
-                {employee.phone && (
-                  <div className="flex items-center gap-3 group">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `${styles.accent}15` }}
-                    >
-                      <Smartphone 
-                        className="h-4 w-4 flex-shrink-0"
-                        style={{ color: styles.accent }} 
-                      />
-                    </div>
-                    <span className="text-sm">{employee.phone} (Mobile)</span>
-                  </div>
-                )}
-
-                {/* Address - Using department as fallback */}
-                {employee.department && (
-                  <div className="flex items-center gap-3 group">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `${styles.accent}15` }}
-                    >
-                      <MapPin 
-                        className="h-4 w-4 flex-shrink-0"
-                        style={{ color: styles.accent }} 
-                      />
-                    </div>
-                    <span className="text-sm">{employee.department}</span>
-                  </div>
-                )}
+                />
+                <span className="text-sm">www.companywebsite.com</span>
               </div>
             </div>
             
-            {/* Right Side */}
-            <div className="flex flex-col justify-between p-8">
-              {/* Company Name (using Organization Name) */}
-              <div className="text-center">
-                <h2 
-                  className="text-xl font-semibold"
-                  style={{ color: styles.accent }}
-                >
-                  {adminOrgName}
-                </h2>
-              </div>
-              
-              {/* QR Code */}
+            {/* QR Code - Right */}
+            <div className="col-span-2 flex items-center justify-center">
               <div 
-                className="mx-auto flex items-center justify-center p-3 rounded-lg shadow-sm"
+                className="p-2 bg-white rounded-md"
                 style={{ 
-                  background: 'white',
-                  border: `2px solid ${styles.accent}20`
+                  border: `1px solid ${styles.accent}20`
                 }}
               >
-                <div 
-                  className="border-4 rounded-md p-1"
-                  style={{ borderColor: `${styles.accent}30` }}
-                >
-                  <QrCode className="h-24 w-24 text-gray-800" />
-                </div>
-              </div>
-              
-              {/* Website */}
-              <div className="text-center">
-                <span 
-                  className="text-sm px-4 py-1 rounded-full inline-block"
-                  style={{ 
-                    backgroundColor: `${styles.accent}15`,
-                    color: styles.accent
-                  }}
-                >
-                  www.companywebsite.com
-                </span>
+                <QrCode 
+                  className="h-20 w-20" 
+                  style={{ color: styles.accent }}
+                />
               </div>
             </div>
           </div>
         </div>
 
         {/* Company Card Section (Bottom Section - 1066px × 445px) */}
-        <div 
-          className="w-full border-t relative"
-          style={{
-            overflow: 'hidden',
-            borderColor: `${styles.accent}30`
-          }}
-        >
-          {companyCard ? (
-            <>
-              <div
-                className="w-full relative"
-                style={{
-                  aspectRatio: '1066/445',
-                }}
-              >
-                {/* Subtle gradient overlay */}
-                <div 
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0))',
-                    zIndex: 1
-                  }}
-                />
-                
-                {/* Background image */}
-                <div
-                  className="absolute inset-0 bg-center bg-cover"
-                  style={{
-                    backgroundImage: `url(${companyCard.imagePath})`,
-                    transform: 'scale(1.02)',
-                    filter: 'brightness(1.03)',
-                    transition: 'transform 0.3s ease-in-out'
-                  }}
-                />
-                
-                {/* Bottom shadow */}
-                <div 
-                  className="absolute bottom-0 left-0 right-0 h-8"
-                  style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.1), rgba(0,0,0,0))',
-                    zIndex: 2
-                  }}
-                />
-              </div>
-            </>
-          ) : (
-            <div 
-              className="relative"
-              style={{
-                aspectRatio: '1066/445'
-              }}
-            >
-              {/* Background pattern */}
-              <div 
-                className="absolute inset-0 opacity-5"
-                style={{
-                  background: `radial-gradient(circle at 30% 40%, ${styles.accent} 0%, transparent 80%)`,
-                }}
-              />
-              
-              <div 
-                className="absolute inset-0 flex items-center justify-center bg-gray-50"
-                style={{
-                  background: 'linear-gradient(to bottom right, #f9f9f9, #f0f0f0)'
-                }}
-              >
-                <div className="text-center p-6 rounded-lg">
-                  <Building 
-                    className="w-12 h-12 mx-auto mb-2 opacity-20" 
-                    style={{ color: styles.accent }}
-                  />
-                  <p className="text-sm text-gray-500 italic">
-                    Company branding section not yet configured
-                  </p>
-                </div>
-              </div>
+        {companyCard ? (
+          <div
+            className="w-full"
+            style={{
+              aspectRatio: '1066/445',
+              backgroundImage: `url(${companyCard.imagePath})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          />
+        ) : (
+          <div 
+            className="w-full flex items-center justify-center"
+            style={{
+              aspectRatio: '1066/445',
+              backgroundColor: '#f5f5f5',
+              color: '#888'
+            }}
+          >
+            <div className="text-center">
+              <Building className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm font-medium">
+                Company branding area
+              </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         
         {/* Actions */}
-        <CardContent className="p-4 border-t" style={{ borderColor: `${styles.accent}20` }}>
-          <div className="flex justify-center gap-4">
+        <div 
+          className="flex justify-center gap-4 p-4 border-t bg-white"
+          style={{ borderColor: 'rgba(0,0,0,0.05)' }}
+        >
+          <Button 
+            className="rounded-md"
+            style={{ 
+              backgroundColor: styles.accent,
+              color: 'white',
+            }}
+            size="sm" 
+            onClick={handleShare}
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+          
+          {employee.email && (
             <Button 
-              className="transition-all hover:shadow-md"
+              className="rounded-md"
               style={{ 
-                backgroundColor: styles.accent,
-                color: 'white',
-                borderRadius: '20px',
-                paddingLeft: '18px',
-                paddingRight: '18px'
+                backgroundColor: 'white',
+                color: styles.accent,
+                borderColor: `${styles.accent}40`
               }}
+              variant="outline" 
               size="sm" 
-              onClick={handleShare}
+              asChild
             >
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
+              <a href={`mailto:${employee.email}`}>
+                <Mail className="h-4 w-4 mr-2" />
+                Email
+              </a>
             </Button>
-            
-            {employee.email && (
-              <Button 
-                className="transition-all hover:shadow-md"
-                style={{ 
-                  backgroundColor: `${styles.accent}15`,
-                  color: styles.accent,
-                  borderRadius: '20px',
-                  paddingLeft: '18px',
-                  paddingRight: '18px',
-                  border: 'none'
-                }}
-                variant="outline" 
-                size="sm" 
-                asChild
-              >
-                <a href={`mailto:${employee.email}`}>
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
-                </a>
-              </Button>
-            )}
-            
-            {employee.phone && (
-              <Button 
-                className="transition-all hover:shadow-md"
-                style={{ 
-                  backgroundColor: `${styles.accent}15`,
-                  color: styles.accent,
-                  borderRadius: '20px',
-                  paddingLeft: '18px',
-                  paddingRight: '18px',
-                  border: 'none'
-                }}
-                variant="outline" 
-                size="sm" 
-                asChild
-              >
-                <a href={`tel:${employee.phone}`}>
-                  <Phone className="h-4 w-4 mr-2" />
-                  Call
-                </a>
-              </Button>
-            )}
-          </div>
-        </CardContent>
+          )}
+          
+          {employee.phone && (
+            <Button
+              className="rounded-md" 
+              style={{ 
+                backgroundColor: 'white',
+                color: styles.accent,
+                borderColor: `${styles.accent}40`
+              }}
+              variant="outline" 
+              size="sm" 
+              asChild
+            >
+              <a href={`tel:${employee.phone}`}>
+                <Phone className="h-4 w-4 mr-2" />
+                Call
+              </a>
+            </Button>
+          )}
+        </div>
       </Card>
       
       <p className="text-sm text-muted-foreground mt-6 text-center">
