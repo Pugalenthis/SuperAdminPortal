@@ -7,7 +7,9 @@ import {
   insertEmployeeSchema, 
   insertBusinessCardSchema,
   insertCustomTemplateSchema,
-  employeeFormSchema
+  insertCompanyCardSchema,
+  employeeFormSchema,
+  companyCardFormSchema
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { z } from "zod";
@@ -357,6 +359,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   /************************************
+   * ADMIN ROUTES - COMPANY CARDS
+   ************************************/
+  
+  // Get all company cards for the current admin
+  app.get("/api/company-cards", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user.id;
+      const companyCards = await storage.getCompanyCardsByAdminId(adminId);
+      res.json(companyCards);
+    } catch (error) {
+      console.error("Error fetching company cards:", error);
+      res.status(500).json({ message: "Failed to fetch company cards" });
+    }
+  });
+  
+  // Get active company card for the current admin
+  app.get("/api/company-cards/active", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user.id;
+      const companyCard = await storage.getActiveCompanyCardByAdminId(adminId);
+      
+      if (!companyCard) {
+        return res.status(404).json({ message: "No active company card found" });
+      }
+      
+      res.json(companyCard);
+    } catch (error) {
+      console.error("Error fetching active company card:", error);
+      res.status(500).json({ message: "Failed to fetch active company card" });
+    }
+  });
+  
+  // Get a specific company card
+  app.get("/api/company-cards/:id", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user.id;
+      const companyCardId = parseInt(req.params.id);
+      
+      if (isNaN(companyCardId)) {
+        return res.status(400).json({ message: "Invalid company card ID" });
+      }
+      
+      const companyCard = await storage.getCompanyCard(companyCardId);
+      
+      if (!companyCard) {
+        return res.status(404).json({ message: "Company card not found" });
+      }
+      
+      // Security check - make sure the company card belongs to this admin
+      if (companyCard.adminId !== adminId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      res.json(companyCard);
+    } catch (error) {
+      console.error("Error fetching company card:", error);
+      res.status(500).json({ message: "Failed to fetch company card" });
+    }
+  });
+  
+  // Create a new company card
+  app.post("/api/company-cards", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user.id;
+      
+      // Validate request body
+      const validatedData = companyCardFormSchema.parse({
+        ...req.body,
+        adminId
+      });
+      
+      // Create the company card
+      const companyCard = await storage.createCompanyCard(validatedData);
+      
+      res.status(201).json(companyCard);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error creating company card:", error);
+      res.status(500).json({ message: "Failed to create company card" });
+    }
+  });
+  
+  // Update a company card
+  app.patch("/api/company-cards/:id", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user.id;
+      const companyCardId = parseInt(req.params.id);
+      
+      if (isNaN(companyCardId)) {
+        return res.status(400).json({ message: "Invalid company card ID" });
+      }
+      
+      // Check if company card exists and belongs to this admin
+      const companyCard = await storage.getCompanyCard(companyCardId);
+      if (!companyCard) {
+        return res.status(404).json({ message: "Company card not found" });
+      }
+      
+      if (companyCard.adminId !== adminId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Update the company card
+      const updatedCompanyCard = await storage.updateCompanyCard(companyCardId, req.body);
+      
+      res.json(updatedCompanyCard);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error updating company card:", error);
+      res.status(500).json({ message: "Failed to update company card" });
+    }
+  });
+  
+  // Delete a company card
+  app.delete("/api/company-cards/:id", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user.id;
+      const companyCardId = parseInt(req.params.id);
+      
+      if (isNaN(companyCardId)) {
+        return res.status(400).json({ message: "Invalid company card ID" });
+      }
+      
+      // Check if company card exists and belongs to this admin
+      const companyCard = await storage.getCompanyCard(companyCardId);
+      if (!companyCard) {
+        return res.status(404).json({ message: "Company card not found" });
+      }
+      
+      if (companyCard.adminId !== adminId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Delete the company card
+      const success = await storage.deleteCompanyCard(companyCardId);
+      
+      if (success) {
+        res.status(200).json({ message: "Company card deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete company card" });
+      }
+    } catch (error) {
+      console.error("Error deleting company card:", error);
+      res.status(500).json({ message: "Failed to delete company card" });
+    }
+  });
+
+  /************************************
    * ADMIN ROUTES - BUSINESS CARDS
    ************************************/
   
@@ -425,11 +585,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             customTemplate = await storage.getCustomTemplate(card.customTemplateId);
           }
           
+          // If this card has an associated company card, include that information too
+          let companyCard = null;
+          if (card.companyCardId) {
+            companyCard = await storage.getCompanyCard(card.companyCardId);
+          }
+          
           return {
             ...card,
             employee,
             template,
-            customTemplate
+            customTemplate,
+            companyCard
           };
         })
       );
@@ -464,18 +631,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const cards = await storage.getBusinessCardsByEmployeeId(employeeId);
       
-      // Enhance cards with custom template information
+      // Enhance cards with custom template and company card information
       const enhancedCards = await Promise.all(
         cards.map(async (card) => {
           // If the card uses a custom template, fetch it
+          let customTemplate = null;
           if (card.customTemplateId) {
-            const customTemplate = await storage.getCustomTemplate(card.customTemplateId);
-            return {
-              ...card,
-              customTemplate
-            };
+            customTemplate = await storage.getCustomTemplate(card.customTemplateId);
           }
-          return card;
+          
+          // If the card has a company card, fetch it
+          let companyCard = null;
+          if (card.companyCardId) {
+            companyCard = await storage.getCompanyCard(card.companyCardId);
+          }
+          
+          return {
+            ...card,
+            customTemplate,
+            companyCard
+          };
         })
       );
       
@@ -509,7 +684,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(card);
+      // Get the template
+      const template = await storage.getCardTemplate(card.templateId);
+      
+      // If this card uses a custom template, include that information
+      let customTemplate = null;
+      if (card.customTemplateId) {
+        customTemplate = await storage.getCustomTemplate(card.customTemplateId);
+      }
+      
+      // If this card has an associated company card, include that information
+      let companyCard = null;
+      if (card.companyCardId) {
+        companyCard = await storage.getCompanyCard(card.companyCardId);
+      }
+      
+      // Return the enhanced card
+      res.json({
+        ...card,
+        employee,
+        template,
+        customTemplate,
+        companyCard
+      });
     } catch (error) {
       console.error("Error fetching card:", error);
       res.status(500).json({ message: "Failed to fetch business card" });
@@ -601,11 +798,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Extract fields that can be updated
-      const { templateId, customTemplateId, customization, status } = req.body;
+      const { templateId, customTemplateId, customization, status, companyCardId } = req.body;
+      
+      // If company card ID is provided, verify it exists and belongs to this admin
+      if (companyCardId) {
+        const companyCard = await storage.getCompanyCard(companyCardId);
+        if (!companyCard) {
+          return res.status(400).json({ message: "Invalid company card ID" });
+        }
+        
+        if (companyCard.adminId !== adminId) {
+          return res.status(403).json({ message: "Access denied to this company card" });
+        }
+      }
       
       // Log the update data for debugging
       console.log("Updating business card with data:", { 
-        cardId, templateId, customTemplateId, status 
+        cardId, templateId, customTemplateId, companyCardId, status 
       });
       
       // Update the card
@@ -613,6 +822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         templateId,
         customTemplateId,
         customization,
+        companyCardId,
         status
       });
       
@@ -695,12 +905,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customTemplate = await storage.getCustomTemplate(card.customTemplateId);
       }
       
+      // If this card has an associated company card, include that information
+      let companyCard = null;
+      if (card.companyCardId) {
+        companyCard = await storage.getCompanyCard(card.companyCardId);
+      }
+      
       // Combine data and return
       res.json({
         card,
         employee,
         template,
-        customTemplate
+        customTemplate,
+        companyCard
       });
     } catch (error) {
       console.error("Error fetching public card:", error);
