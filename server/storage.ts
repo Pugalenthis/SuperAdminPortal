@@ -230,17 +230,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBusinessCard(id: number, card: Partial<InsertBusinessCard>): Promise<BusinessCard | undefined> {
+    // Log the input data for debugging
+    console.log(`Updating business card ${id} with data:`, card);
+    
     // Update the updatedAt field automatically
     const updateData = {
       ...card,
       updatedAt: new Date()
     };
     
+    console.log(`Running database update for card ${id} with final data:`, updateData);
+    
+    // First perform the update
     const [updatedCard] = await db
       .update(businessCards)
       .set(updateData)
       .where(eq(businessCards.id, id))
       .returning();
+    
+    // Then fetch the updated card directly to ensure we have the freshest data
+    // This helps avoid any potential caching issues at the database driver level
+    if (updatedCard) {
+      console.log(`Card ${id} updated. Getting fresh data from database.`);
+      const [freshCard] = await db
+        .select()
+        .from(businessCards)
+        .where(eq(businessCards.id, id));
+      
+      console.log(`Fresh data for card ${id}:`, freshCard);
+      return freshCard;
+    }
+    
+    console.log(`No card was updated with ID ${id}`);
     return updatedCard;
   }
 

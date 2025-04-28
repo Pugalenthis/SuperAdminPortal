@@ -33,6 +33,7 @@ import {
   CreditCard, User, Mail, Link, Calendar, Check, X 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { formatDistanceToNow } from "date-fns";
 
 export default function AdminCardsPage() {
@@ -390,7 +391,56 @@ export default function AdminCardsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
-                        {card.status ? <StatusBadge status={card.status} /> : "—"}
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={card.status || "inactive"} />
+                          <div 
+                            className="cursor-pointer ml-2" 
+                            onClick={async () => {
+                              try {
+                                const newStatus = card.status === 'active' ? 'inactive' : 'active';
+                                console.log(`Toggling card ${card.id} status to ${newStatus}`);
+                                
+                                const response = await fetch(`/api/cards/${card.id}`, {
+                                  method: 'PUT',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  credentials: 'include',
+                                  body: JSON.stringify({
+                                    status: newStatus,
+                                    templateId: card.templateId,
+                                    customTemplateId: card.customTemplateId,
+                                    customization: card.customization || {}
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  throw new Error('Failed to update card status');
+                                }
+                                
+                                // Clear cache and force a complete refresh
+                                queryClient.removeQueries({ queryKey: ['/api/cards'] });
+                                setTimeout(() => {
+                                  refetchCards();
+                                }, 100);
+                                
+                                toast({
+                                  title: "Status updated",
+                                  description: `Card is now ${newStatus}`,
+                                });
+                              } catch (error) {
+                                console.error("Error updating card status:", error);
+                                toast({
+                                  title: "Update failed",
+                                  description: "Could not update card status",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                          >
+                            <Switch checked={card.status === 'active'} />
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
