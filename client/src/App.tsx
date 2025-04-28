@@ -42,6 +42,7 @@ function App() {
         
         {/* Public Card View */}
         <Route path="/card/:uniqueUrl" component={CardViewPage} />
+        <Route path="/cards/:uniqueUrl" component={CardViewPage} />
         
         {/* 404 Page */}
         <Route component={NotFound} />

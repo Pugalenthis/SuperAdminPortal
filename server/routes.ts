@@ -933,6 +933,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let companyCard = null;
       if (card.companyCardId) {
         companyCard = await storage.getCompanyCard(card.companyCardId);
+      } else {
+        // If no company card is specifically assigned to this business card, 
+        // use the admin's active company card instead
+        const admin = await storage.getAdmin(employee.adminId);
+        if (admin) {
+          const activeCompanyCard = await storage.getActiveCompanyCardByAdminId(admin.id);
+          if (activeCompanyCard) {
+            companyCard = activeCompanyCard;
+          }
+        }
       }
       
       // Combine data and return

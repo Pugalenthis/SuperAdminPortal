@@ -187,68 +187,71 @@ export default function CardViewPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-      {/* Business Card - Dual Section Design */}
+      {/* Business Card - Dual Section Design with exact dimensions */}
       <Card className="w-full max-w-md mx-auto overflow-hidden shadow-lg">
         {/* Employee Section (Top Section - 1066px × 442px) */}
         <div 
-          className="p-6"
+          className="relative"
           style={{ 
+            aspectRatio: '1066/442',
             background: styles.background,
             color: styles.textColor,
-            width: '100%',
-            aspectRatio: '1066/442',
-            position: 'relative'
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '1.5rem'
           }}
         >
           {/* Header - Name and Title */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-4 w-full">
             {employee.profileImage && (
-              <div className="mb-4 flex justify-center">
+              <div className="mb-3 flex justify-center">
                 <img 
                   src={employee.profileImage} 
                   alt={`${employee.firstName} ${employee.lastName}`}
-                  className="w-24 h-24 rounded-full object-cover border-4"
+                  className="w-20 h-20 rounded-full object-cover border-4"
                   style={{ borderColor: styles.accent }}
                 />
               </div>
             )}
             <h1 
-              className="text-2xl font-bold"
+              className="text-xl font-bold"
               style={{ color: styles.accent }}
             >
               {employee.firstName} {employee.lastName}
             </h1>
-            <p className="text-lg opacity-90">{employee.title}</p>
+            <p className="text-base opacity-90">{employee.title}</p>
             {employee.department && (
-              <p className="text-sm opacity-70">{employee.department}</p>
+              <p className="text-xs opacity-70">{employee.department}</p>
             )}
           </div>
           
           {/* Contact Information */}
-          <div className="space-y-3">
+          <div className="space-y-2 w-full">
             {employee.email && (
               <a 
                 href={`mailto:${employee.email}`}
-                className="flex items-center gap-3 p-2 rounded hover:bg-black/5 transition-colors"
+                className="flex items-center gap-2 rounded hover:bg-black/5 transition-colors text-sm"
               >
                 <Mail 
-                  className="h-5 w-5 flex-shrink-0"
+                  className="h-4 w-4 flex-shrink-0"
                   style={{ color: styles.accent }} 
                 />
-                <span className="text-sm break-all">{employee.email}</span>
+                <span className="break-all">{employee.email}</span>
               </a>
             )}
             
             {employee.phone && (
               <a 
                 href={`tel:${employee.phone}`}
-                className="flex items-center gap-3 p-2 rounded hover:bg-black/5 transition-colors"
+                className="flex items-center gap-2 rounded hover:bg-black/5 transition-colors text-sm"
               >
                 <Phone 
-                  className="h-5 w-5 flex-shrink-0"
+                  className="h-4 w-4 flex-shrink-0"
                   style={{ color: styles.accent }} 
                 />
-                <span className="text-sm">{employee.phone}</span>
+                <span>{employee.phone}</span>
               </a>
             )}
           </div>
@@ -259,18 +262,16 @@ export default function CardViewPage() {
           <div
             className="w-full border-t"
             style={{
-              width: '100%',
               aspectRatio: '1066/445',
-              backgroundImage: `url(/uploads/${companyCard.imagePath})`,
+              backgroundImage: `url(${companyCard.imagePath})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
           />
         ) : (
           <div 
-            className="w-full border-t p-4 flex items-center justify-center"
+            className="w-full border-t flex items-center justify-center"
             style={{
-              width: '100%',
               aspectRatio: '1066/445',
               background: '#f1f1f1',
               color: '#666'
