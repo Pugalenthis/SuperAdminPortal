@@ -42,6 +42,9 @@ export function TemplatePreviewModal({
     queryKey: ['/api/custom-templates', templateId],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!templateId && open && isCustomTemplate,
+    staleTime: 0, // Always refetch when the modal is opened
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
   
   // Determine which template to use for display
@@ -60,10 +63,30 @@ export function TemplatePreviewModal({
     bodyFont: "Roboto"
   });
   
+  // Reset preview styles when the dialog closes
+  useEffect(() => {
+    if (!open) {
+      // Reset to defaults when dialog closes
+      setPreviewColors({
+        primary: "#0f766e",
+        secondary: "#f59e0b",
+        text: "#1e293b",
+        background: "#ffffff"
+      });
+      setPreviewFonts({
+        headingFont: "Inter",
+        bodyFont: "Roboto"
+      });
+    }
+  }, [open]);
+  
   // Update preview styles when template is loaded - either standard or custom
   useEffect(() => {
-    console.log("Template preview update - isCustom:", isCustomTemplate);
+    console.log("Template preview update - isCustom:", isCustomTemplate, "templateId:", templateId, "open:", open);
     console.log("Template data:", isCustomTemplate ? customTemplate : standardTemplate);
+    
+    // Only proceed if the dialog is open
+    if (!open) return;
     
     if (isCustomTemplate && customTemplate?.customization) {
       // For custom templates, use the customization data
@@ -71,18 +94,24 @@ export function TemplatePreviewModal({
       
       const customization = customTemplate.customization as any;
       
-      if (customization.colors) {
-        setPreviewColors(prevColors => ({
-          ...prevColors,
-          ...customization.colors
-        }));
-      }
+      // When updating from a custom template, do a full reset first to avoid stale values
+      const newColors = {
+        primary: "#0f766e",
+        secondary: "#f59e0b",
+        text: "#1e293b",
+        background: "#ffffff",
+        ...customization.colors
+      };
+      
+      console.log("Setting custom template colors to:", newColors);
+      setPreviewColors(newColors);
       
       if (customization.fonts) {
-        setPreviewFonts(prevFonts => ({
-          ...prevFonts,
+        setPreviewFonts({
+          headingFont: "Inter",
+          bodyFont: "Roboto",
           ...customization.fonts
-        }));
+        });
       }
     } else if (!isCustomTemplate && standardTemplate?.template) {
       // For standard templates, use the template data
@@ -92,15 +121,16 @@ export function TemplatePreviewModal({
       
       // Map standard template properties to our preview colors
       const templateColors = {
-        primary: template.accent || previewColors.primary,
-        secondary: previewColors.secondary,
-        text: template.textColor || previewColors.text,
-        background: template.background || previewColors.background
+        primary: template.accent || "#0f766e",
+        secondary: "#f59e0b", // Default as standard templates may not have this
+        text: template.textColor || "#1e293b",
+        background: template.background || "#ffffff"
       };
       
+      console.log("Setting standard template colors to:", templateColors);
       setPreviewColors(templateColors);
     }
-  }, [isCustomTemplate, customTemplate, standardTemplate]);
+  }, [isCustomTemplate, customTemplate, standardTemplate, open, templateId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -177,11 +177,20 @@ export default function AdminTemplatesPage() {
            (template.description && template.description.toLowerCase().includes(searchQuery.toLowerCase()));
   }) || [];
   
-  // Handle preview click for standard templates
+  // Handle preview click for any template type
   const handlePreviewClick = (templateId: number, isCustom = false) => {
-    setSelectedTemplateId(templateId);
-    setIsCustomTemplate(isCustom);
-    setPreviewModalOpen(true);
+    console.log("Opening preview for template ID:", templateId, "isCustom:", isCustom);
+    
+    // Clear any existing template data first (to avoid showing stale data)
+    setSelectedTemplateId(null);
+    setIsCustomTemplate(false);
+    
+    // Wait a short moment to ensure state is cleared before setting new values
+    setTimeout(() => {
+      setSelectedTemplateId(templateId);
+      setIsCustomTemplate(isCustom);
+      setPreviewModalOpen(true);
+    }, 50);
   };
   
   // Handle delete click for custom templates
