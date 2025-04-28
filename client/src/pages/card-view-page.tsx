@@ -208,10 +208,11 @@ export default function CardViewPage() {
         <div 
           className="w-full px-6 py-8"
           style={{ 
-            aspectRatio: '1066/442',
+            aspectRatio: '1066/442', // Exact dimensions as specified
             background: styles.background, 
             color: styles.textColor,
-            borderTop: `4px solid ${styles.accent}`
+            borderTop: `4px solid ${styles.accent}`,
+            boxShadow: 'inset 0 0 30px rgba(0,0,0,0.01)'
           }}
         >
           {/* Company Logo/Name */}
@@ -296,12 +297,12 @@ export default function CardViewPage() {
             </div>
             
             {/* QR Code - Right */}
-            <div className="col-span-2 flex flex-col items-center justify-center space-y-2">
+            <div className="col-span-2 flex flex-col items-center justify-center">
               <div 
-                className="p-2 bg-white rounded-md"
+                className="p-3 bg-white rounded-lg mb-3"
                 style={{ 
-                  border: `1px solid ${styles.accent}20`,
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                  border: `1px solid ${styles.accent}30`,
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.08)'
                 }}
               >
                 <QrCode 
@@ -309,26 +310,37 @@ export default function CardViewPage() {
                   style={{ color: styles.textColor }}
                 />
               </div>
-              <span 
-                className="text-xs px-3 py-0.5 rounded-full text-center mt-1"
-                style={{ 
-                  backgroundColor: `${styles.accent}10`,
-                  color: styles.accent,
-                  fontWeight: 500
-                }}
-              >
-                www.companywebsite.com
-              </span>
+              <div className="flex flex-col items-center gap-1.5">
+                <span 
+                  className="text-xs px-3 py-1 rounded-md text-center"
+                  style={{ 
+                    backgroundColor: `${styles.accent}15`,
+                    color: styles.accent,
+                    fontWeight: 500,
+                    borderLeft: `3px solid ${styles.accent}`
+                  }}
+                >
+                  www.companywebsite.com
+                </span>
+                <span 
+                  className="text-xs text-center"
+                  style={{ 
+                    color: `${styles.textColor}80`,
+                  }}
+                >
+                  Scan to connect
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Company Card Section (Bottom Section - matching aspect ratio) */}
+        {/* Company Card Section (Bottom Section - matching aspect ratio with section 1) */}
         {companyCard ? (
           <div
             className="w-full relative"
             style={{
-              aspectRatio: '1066/442',
+              aspectRatio: '1066/445', // Exactly match the specified dimensions (1066x445)
               backgroundColor: '#f8f8f8',
               borderTop: '1px solid rgba(0,0,0,0.05)'
             }}
@@ -338,21 +350,30 @@ export default function CardViewPage() {
               style={{
                 backgroundImage: `url(${companyCard.imagePath})`,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundPosition: 'center',
+                boxShadow: 'inset 0 -1px 10px rgba(0,0,0,0.05)'
               }}
             />
             {/* Add subtle gradient overlay for depth */}
             <div 
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.02), rgba(0,0,0,0.06))',
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.01) 0%, rgba(0,0,0,0.04) 70%, rgba(0,0,0,0.08) 100%)',
                 zIndex: 1
               }}
             />
             <div 
-              className="absolute bottom-0 left-0 right-0 h-12"
+              className="absolute bottom-0 left-0 right-0 h-16"
               style={{
-                background: 'linear-gradient(to top, rgba(0,0,0,0.1), transparent)',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.12), transparent)',
+                zIndex: 2
+              }}
+            />
+            {/* Add subtle top shadow for depth between sections */}
+            <div 
+              className="absolute top-0 left-0 right-0 h-2"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.04), transparent)',
                 zIndex: 2
               }}
             />
@@ -361,24 +382,26 @@ export default function CardViewPage() {
           <div 
             className="w-full flex items-center justify-center"
             style={{
-              aspectRatio: '1066/442',
-              backgroundColor: '#f8f8f8',
-              borderTop: '1px solid rgba(0,0,0,0.05)'
+              aspectRatio: '1066/445', // Exactly match the specified dimensions (1066x445)
+              backgroundColor: '#f8f9fa',
+              borderTop: '1px solid rgba(0,0,0,0.05)',
+              boxShadow: 'inset 0 1px 6px rgba(0,0,0,0.02)'
             }}
           >
             <div className="text-center p-6">
               <div 
                 className="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center"
                 style={{ 
-                  backgroundColor: `${styles.accent}10` 
+                  backgroundColor: `${styles.accent}10`,
+                  boxShadow: '0 3px 12px rgba(0,0,0,0.06)'
                 }}
               >
                 <Building 
-                  className="w-8 h-8 opacity-60" 
+                  className="w-8 h-8 opacity-70" 
                   style={{ color: styles.accent }}
                 />
               </div>
-              <p className="text-sm text-gray-500 font-medium">
+              <p className="text-sm text-gray-600 font-medium">
                 Company branding section
               </p>
               <p className="text-xs text-gray-400 mt-1 max-w-xs">
