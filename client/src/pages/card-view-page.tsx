@@ -260,27 +260,15 @@ export default function CardViewPage() {
         {/* Company Card Section (Bottom Section - 1066px × 445px) */}
         {companyCard ? (
           <>
-            {console.log("DEBUG: Company Card Data:", companyCard)}
             <div
-              className="w-full border-t bg-blue-50"
+              className="w-full border-t"
               style={{
                 aspectRatio: '1066/445',
-                border: '2px dashed blue'
+                backgroundImage: `url(${companyCard.imagePath})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
               }}
-            >
-              <img 
-                src={companyCard.imagePath} 
-                alt="Company branding"
-                className="w-full h-full object-cover" 
-                onError={(e) => {
-                  console.error("Image failed to load:", companyCard.imagePath);
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerHTML = `<div class="flex h-full items-center justify-center">
-                    <div class="text-sm text-red-500">Failed to load image: ${companyCard.imagePath}</div>
-                  </div>`;
-                }}
-              />
-            </div>
+            />
           </>
         ) : (
           <div 
