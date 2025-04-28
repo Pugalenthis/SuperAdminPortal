@@ -175,7 +175,7 @@ export default function AdminTemplateCustomizePage() {
       console.log("Sending data to API:", templateData);
       
       // Save to backend as a custom template
-      const response = await apiRequest('POST', '/api/custom-templates', templateData);
+      const response = await apiRequest('/api/custom-templates', 'POST', templateData);
       
       if (!response.ok) {
         const errorData = await response.json();
