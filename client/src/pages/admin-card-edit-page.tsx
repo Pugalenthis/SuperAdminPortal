@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
@@ -145,16 +145,41 @@ export default function AdminCardEditPage() {
     },
   });
   
-  // Fetch all templates for the dropdown
+  // Fetch all base templates for the dropdown
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ['/api/card-templates'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
     enabled: !!user && user.userType === 'admin',
     onSuccess: (data) => {
-      console.log("Templates loaded:", data);
+      console.log("Base templates loaded:", data);
     }
   });
+  
+  // Fetch custom templates for the dropdown
+  const { data: customTemplates = [], isLoading: customTemplatesLoading } = useQuery({
+    queryKey: ['/api/custom-templates'],
+    queryFn: getQueryFn({ on401: "throw" }),
+    retry: false,
+    enabled: !!user && user.userType === 'admin',
+    onSuccess: (data) => {
+      console.log("Custom templates loaded:", data);
+    }
+  });
+  
+  // Combine templates for dropdown display
+  const allTemplates = useMemo(() => {
+    // Add type property to distinguish between template types
+    const baseTemplatesWithType = (templates as any[]).map(t => ({ 
+      ...t, 
+      type: 'base' 
+    }));
+    const customTemplatesWithType = (customTemplates as any[]).map(t => ({ 
+      ...t, 
+      type: 'custom' 
+    }));
+    return [...baseTemplatesWithType, ...customTemplatesWithType];
+  }, [templates, customTemplates]);
   
   // Form definition
   const form = useForm<CardEditFormValues>({
@@ -188,13 +213,25 @@ export default function AdminCardEditPage() {
   // Update form values when card data is loaded AND templates are loaded
   useEffect(() => {
     if (card && templates && templates.length > 0) {
-      // Make sure templateId is a valid number
-      const templateId = typeof card.templateId === 'number' && card.templateId > 0 
-        ? card.templateId 
-        : templates.length > 0 ? templates[0].id : 0;
+      // Make sure templateId is a valid number (could be customTemplateId)
+      let templateId = card.templateId;
       
-      // Extract status directly - strict checking to ensure we accurately represent active status
-      // This is critical for the switch UI component to show the correct state
+      // Check if we need to use a customTemplateId instead
+      if (card.customTemplateId && customTemplates && customTemplates.length > 0) {
+        const matchingCustomTemplate = (customTemplates as any[]).find(t => t.id === card.customTemplateId);
+        if (matchingCustomTemplate) {
+          templateId = matchingCustomTemplate.id;
+          console.log("Using custom template ID:", templateId);
+        }
+      }
+      
+      // Fallback if templateId is invalid
+      if (typeof templateId !== 'number' || templateId <= 0) {
+        templateId = templates.length > 0 ? (templates as any[])[0].id : 0;
+      }
+      
+      // Extract status directly - use strict equality to check for 'active'
+      // Any status that isn't explicitly 'active' is treated as inactive
       const status = card.status === 'active' ? 'active' : 'inactive';
       
       console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
@@ -214,7 +251,7 @@ export default function AdminCardEditPage() {
       // Also explicitly set the status field to ensure it's updated
       form.setValue('status', status);
     }
-  }, [card, templates, form]);
+  }, [card, templates, customTemplates, form]);
   
   // Update card mutation
   const updateCardMutation = useMutation({
@@ -274,7 +311,10 @@ export default function AdminCardEditPage() {
   };
   
   // Loading state
-  if (userLoading || (cardLoading && user?.userType === 'admin') || (templatesLoading && user?.userType === 'admin')) {
+  if (userLoading || 
+      (cardLoading && user?.userType === 'admin') || 
+      (templatesLoading && user?.userType === 'admin') ||
+      (customTemplatesLoading && user?.userType === 'admin')) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -354,7 +394,9 @@ export default function AdminCardEditPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {templates.map((template: any) => (
+                          {/* Standard Templates section */}
+                          <div className="px-2 py-1.5 text-sm font-semibold">Standard Templates</div>
+                          {(templates as any[]).map((template) => (
                             <SelectItem 
                               key={template.id} 
                               value={template.id.toString()}
@@ -362,6 +404,21 @@ export default function AdminCardEditPage() {
                               {template.name}
                             </SelectItem>
                           ))}
+                          
+                          {/* My Templates section - only show if there are custom templates */}
+                          {(customTemplates as any[]).length > 0 && (
+                            <>
+                              <div className="px-2 py-1.5 text-sm font-semibold mt-2">My Templates</div>
+                              {(customTemplates as any[]).map((template) => (
+                                <SelectItem 
+                                  key={template.id} 
+                                  value={template.id.toString()}
+                                >
+                                  {template.name}
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormDescription>
