@@ -5,7 +5,7 @@ import { getQueryFn } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Employee, BusinessCard, CardTemplate, CustomTemplate, CompanyCard } from "@shared/schema";
-import { Share2, Download, Mail, Phone, Building, Briefcase } from "lucide-react";
+import { Share2, Download, Mail, Phone, Building, Briefcase, QrCode, Smartphone, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface CardViewData {
@@ -20,6 +20,14 @@ export default function CardViewPage() {
   const { toast } = useToast();
   const [, params] = useRoute("/card/:uniqueUrl");
   const uniqueUrl = params?.uniqueUrl || "";
+  
+  // Get user data for company info
+  const { data: userData } = useQuery({
+    queryKey: ['/api/user'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+  });
+  const adminOrgName = userData?.orgName || "ORGANIZATION";
 
   // Fetch card data
   const { data, isLoading, error } = useQuery<CardViewData>({
@@ -191,69 +199,92 @@ export default function CardViewPage() {
       <Card className="w-full max-w-md mx-auto overflow-hidden shadow-lg">
         {/* Employee Section (Top Section - 1066px × 442px) */}
         <div 
-          className="relative"
+          className="w-full"
           style={{ 
             aspectRatio: '1066/442',
-            background: styles.background,
+            background: styles.background, 
             color: styles.textColor,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
             padding: '1.5rem'
           }}
         >
-          {/* Header - Name and Title */}
-          <div className="text-center mb-4 w-full">
-            {employee.profileImage && (
-              <div className="mb-3 flex justify-center">
-                <img 
-                  src={employee.profileImage} 
-                  alt={`${employee.firstName} ${employee.lastName}`}
-                  className="w-20 h-20 rounded-full object-cover border-4"
-                  style={{ borderColor: styles.accent }}
-                />
+          {/* Two-column layout */}
+          <div className="grid grid-cols-2 h-full">
+            {/* Left Side */}
+            <div className="border-r border-gray-200 pr-4 flex flex-col justify-between">
+              {/* Name */}
+              <div>
+                <h1 
+                  className="text-xl font-bold"
+                  style={{ color: styles.accent }}
+                >
+                  {employee.firstName} {employee.lastName}
+                </h1>
+                <p className="text-base opacity-90 mt-1">{employee.title}</p>
               </div>
-            )}
-            <h1 
-              className="text-xl font-bold"
-              style={{ color: styles.accent }}
-            >
-              {employee.firstName} {employee.lastName}
-            </h1>
-            <p className="text-base opacity-90">{employee.title}</p>
-            {employee.department && (
-              <p className="text-xs opacity-70">{employee.department}</p>
-            )}
-          </div>
-          
-          {/* Contact Information */}
-          <div className="space-y-2 w-full">
-            {employee.email && (
-              <a 
-                href={`mailto:${employee.email}`}
-                className="flex items-center gap-2 rounded hover:bg-black/5 transition-colors text-sm"
-              >
-                <Mail 
-                  className="h-4 w-4 flex-shrink-0"
-                  style={{ color: styles.accent }} 
-                />
-                <span className="break-all">{employee.email}</span>
-              </a>
-            )}
+              
+              {/* Contact Information */}
+              <div className="space-y-3 mt-4">
+                {employee.email && (
+                  <div className="flex items-center gap-2">
+                    <Mail 
+                      className="h-4 w-4 flex-shrink-0"
+                      style={{ color: styles.accent }} 
+                    />
+                    <span className="text-sm">{employee.email}</span>
+                  </div>
+                )}
+                
+                {employee.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone 
+                      className="h-4 w-4 flex-shrink-0"
+                      style={{ color: styles.accent }} 
+                    />
+                    <span className="text-sm">{employee.phone}</span>
+                  </div>
+                )}
+
+                {/* Mobile/WhatsApp - Using phone as fallback */}
+                {employee.phone && (
+                  <div className="flex items-center gap-2">
+                    <Smartphone 
+                      className="h-4 w-4 flex-shrink-0"
+                      style={{ color: styles.accent }} 
+                    />
+                    <span className="text-sm">{employee.phone} (Mobile)</span>
+                  </div>
+                )}
+
+                {/* Address - Using department as fallback */}
+                {employee.department && (
+                  <div className="flex items-center gap-2">
+                    <MapPin 
+                      className="h-4 w-4 flex-shrink-0"
+                      style={{ color: styles.accent }} 
+                    />
+                    <span className="text-sm">{employee.department}</span>
+                  </div>
+                )}
+              </div>
+            </div>
             
-            {employee.phone && (
-              <a 
-                href={`tel:${employee.phone}`}
-                className="flex items-center gap-2 rounded hover:bg-black/5 transition-colors text-sm"
-              >
-                <Phone 
-                  className="h-4 w-4 flex-shrink-0"
-                  style={{ color: styles.accent }} 
-                />
-                <span>{employee.phone}</span>
-              </a>
-            )}
+            {/* Right Side */}
+            <div className="pl-4 flex flex-col">
+              {/* Company Name (using Organization Name) */}
+              <div>
+                <h2 className="text-lg font-semibold">{adminOrgName}</h2>
+              </div>
+              
+              {/* QR Code Placeholder */}
+              <div className="mt-4 border border-gray-300 rounded-md h-32 w-32 mx-auto flex items-center justify-center">
+                <QrCode className="h-24 w-24 text-gray-400" />
+              </div>
+              
+              {/* Website */}
+              <div className="mt-auto text-center">
+                <span className="text-sm">www.companywebsite.com</span>
+              </div>
+            </div>
           </div>
         </div>
 
