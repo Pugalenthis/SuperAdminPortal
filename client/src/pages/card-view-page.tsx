@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Employee, BusinessCard, CardTemplate, CustomTemplate } from "@shared/schema";
+import { Employee, BusinessCard, CardTemplate, CustomTemplate, CompanyCard } from "@shared/schema";
 import { Share2, Download, Mail, Phone, Building, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +13,7 @@ interface CardViewData {
   employee: Employee;
   template: CardTemplate;
   customTemplate?: CustomTemplate;
+  companyCard?: CompanyCard;
 }
 
 export default function CardViewPage() {
@@ -32,6 +33,7 @@ export default function CardViewPage() {
   const card = data?.card;
   const template = data?.template;
   const customTemplate = data?.customTemplate;
+  const companyCard = data?.companyCard;
   const customization = card?.customization || {};
 
   // Get template styles
@@ -185,16 +187,20 @@ export default function CardViewPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-      {/* Business Card */}
+      {/* Business Card - Dual Section Design */}
       <Card className="w-full max-w-md mx-auto overflow-hidden shadow-lg">
+        {/* Employee Section (Top Section - 1066px × 442px) */}
         <div 
           className="p-6"
           style={{ 
             background: styles.background,
-            color: styles.textColor
+            color: styles.textColor,
+            width: '100%',
+            aspectRatio: '1066/442',
+            position: 'relative'
           }}
         >
-          {/* Header - Company and Name */}
+          {/* Header - Name and Title */}
           <div className="text-center mb-6">
             {employee.profileImage && (
               <div className="mb-4 flex justify-center">
@@ -247,6 +253,34 @@ export default function CardViewPage() {
             )}
           </div>
         </div>
+
+        {/* Company Card Section (Bottom Section - 1066px × 445px) */}
+        {companyCard ? (
+          <div
+            className="w-full border-t"
+            style={{
+              width: '100%',
+              aspectRatio: '1066/445',
+              backgroundImage: `url(/uploads/${companyCard.imagePath})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          />
+        ) : (
+          <div 
+            className="w-full border-t p-4 flex items-center justify-center"
+            style={{
+              width: '100%',
+              aspectRatio: '1066/445',
+              background: '#f1f1f1',
+              color: '#666'
+            }}
+          >
+            <p className="text-center text-sm italic">
+              Company section not yet configured
+            </p>
+          </div>
+        )}
         
         {/* Actions */}
         <CardContent className="p-4 border-t">
