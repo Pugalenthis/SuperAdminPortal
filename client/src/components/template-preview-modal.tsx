@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
+import { EuroBankCardTemplate } from "@/components/euro-bank-card-template";
 
 interface TemplatePreviewModalProps {
   open: boolean;
