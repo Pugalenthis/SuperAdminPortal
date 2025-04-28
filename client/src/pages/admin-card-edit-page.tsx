@@ -47,6 +47,8 @@ const cardEditFormSchema = z.object({
     required_error: "Please select a status",
   }),
   customization: z.record(z.any()).optional(),
+  // Hidden field to track if this is a custom template and separate templateId from customTemplateId
+  templateInfo: z.string().optional(),
 });
 
 type CardEditFormValues = z.infer<typeof cardEditFormSchema>;
@@ -213,39 +215,60 @@ export default function AdminCardEditPage() {
   // Update form values when card data is loaded AND templates are loaded
   useEffect(() => {
     if (card && templates && templates.length > 0) {
-      // Make sure templateId is a valid number (could be customTemplateId)
-      let templateId = card.templateId;
+      // Determine which template to select in the UI
+      // The templateId field in the form will represent whether it's a base template
+      // or a custom template based on where it's selected from in the UI
+      let displayTemplateId;
+      let actualTemplateId = card.templateId; // Use this for base templates
+      let actualCustomTemplateId = card.customTemplateId; // Use this for custom templates
+      let isCustomTemplate = false;
       
       // Check if we need to use a customTemplateId instead
       if (card.customTemplateId && customTemplates && customTemplates.length > 0) {
         const matchingCustomTemplate = (customTemplates as any[]).find(t => t.id === card.customTemplateId);
         if (matchingCustomTemplate) {
-          templateId = matchingCustomTemplate.id;
-          console.log("Using custom template ID:", templateId);
+          displayTemplateId = matchingCustomTemplate.id;
+          isCustomTemplate = true;
+          console.log("Using custom template ID:", displayTemplateId);
         }
       }
       
-      // Fallback if templateId is invalid
-      if (typeof templateId !== 'number' || templateId <= 0) {
-        templateId = templates.length > 0 ? (templates as any[])[0].id : 0;
+      // If not a custom template, use the standard template
+      if (!isCustomTemplate) {
+        displayTemplateId = card.templateId;
+      }
+      
+      // Fallback if displayTemplateId is invalid
+      if (typeof displayTemplateId !== 'number' || displayTemplateId <= 0) {
+        displayTemplateId = templates.length > 0 ? (templates as any[])[0].id : 0;
+        isCustomTemplate = false; // Ensure we know it's a base template
       }
       
       // Extract status directly - use strict equality to check for 'active'
       // Any status that isn't explicitly 'active' is treated as inactive
       const status = card.status === 'active' ? 'active' : 'inactive';
       
-      console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
+      console.log("Setting form with display template ID:", displayTemplateId, "from card:", card.templateId);
+      console.log("Is custom template:", isCustomTemplate);
       console.log("Card status (normalized):", status, "Original status:", card.status);
       
       // Always update our state variable for card status
       console.log("Updating cardStatus state to:", status);
       setCardStatus(status);
       
+      // Store the template selection info in a hidden field to use during updates
+      const templateInfo = {
+        isCustomTemplate,
+        templateId: isCustomTemplate ? null : displayTemplateId, // Only set if standard template
+        customTemplateId: isCustomTemplate ? displayTemplateId : null, // Only set if custom template
+      };
+      
       // Reset form with the correct values
       form.reset({
-        templateId,
+        templateId: displayTemplateId, // Use this for display purposes only
         status,
         customization: card.customization || {},
+        templateInfo: JSON.stringify(templateInfo), // Hidden field 
       });
       
       // Also explicitly set the status field to ensure it's updated
@@ -303,8 +326,33 @@ export default function AdminCardEditPage() {
     setIsSubmitting(true);
     // Make sure cardStatus is updated before submission
     setCardStatus(values.status);
+    
     try {
-      await updateCardMutation.mutateAsync(values);
+      // Parse the template info to determine which ID goes where
+      let templateInfo = { isCustomTemplate: false, templateId: null, customTemplateId: null };
+      if (values.templateInfo) {
+        try {
+          templateInfo = JSON.parse(values.templateInfo);
+          console.log("Using template info:", templateInfo);
+        } catch (e) {
+          console.error("Error parsing template info:", e);
+        }
+      }
+      
+      // Prepare data for server - separate templateId and customTemplateId
+      const dataToSubmit = {
+        templateId: templateInfo.isCustomTemplate 
+          ? (card?.templateId || 1) // Keep original or use default if using custom template
+          : values.templateId,
+        customTemplateId: templateInfo.isCustomTemplate 
+          ? values.templateId // Use the selected ID as customTemplateId if it's a custom template
+          : null, // Clear customTemplateId if using standard template
+        status: values.status,
+        customization: values.customization
+      };
+      
+      console.log("Submitting data to server:", dataToSubmit);
+      await updateCardMutation.mutateAsync(dataToSubmit as any);
     } finally {
       setIsSubmitting(false);
     }
