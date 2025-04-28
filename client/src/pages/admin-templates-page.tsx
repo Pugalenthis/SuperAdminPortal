@@ -310,10 +310,10 @@ export default function AdminTemplatesPage() {
                         </Button>
                       </div>
                       <Button 
-                        className="w-full sm:w-auto" 
+                        className="w-full sm:w-auto min-w-[100px]" 
                         onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
                       >
-                        Use Template
+                        Use
                       </Button>
                     </CardFooter>
                   </Card>
@@ -375,10 +375,10 @@ export default function AdminTemplatesPage() {
                           </Button>
                         </div>
                         <Button 
-                          className="w-full sm:w-auto" 
+                          className="w-full sm:w-auto min-w-[100px]" 
                           onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
                         >
-                          Use Template
+                          Use
                         </Button>
                       </CardFooter>
                     </Card>
@@ -445,10 +445,10 @@ export default function AdminTemplatesPage() {
                           </Button>
                         </div>
                         <Button 
-                          className="w-full sm:w-auto" 
+                          className="w-full sm:w-auto min-w-[100px]" 
                           onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
                         >
-                          Use Template
+                          Use
                         </Button>
                       </CardFooter>
                     </Card>
@@ -509,10 +509,10 @@ export default function AdminTemplatesPage() {
                         </Button>
                       </div>
                       <Button 
-                        className="w-full sm:w-auto" 
+                        className="w-full sm:w-auto min-w-[100px]" 
                         onClick={() => navigate(`/admin/new-card?customTemplate=${template.id}`)}
                       >
-                        Use Template
+                        Use
                       </Button>
                     </CardFooter>
                   </Card>
