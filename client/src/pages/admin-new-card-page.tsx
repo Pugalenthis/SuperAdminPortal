@@ -111,9 +111,12 @@ export default function AdminNewCardPage() {
   // Update default template when templates are loaded
   useEffect(() => {
     if (templates.length > 0) {
-      form.setValue('templateId', getDefaultTemplateId());
+      // Only set default value if no template is currently selected
+      if (!form.getValues('templateId')) {
+        form.setValue('templateId', getDefaultTemplateId());
+      }
     }
-  }, [templates]);
+  }, [templates, form]);
   
   // Get selected template
   const selectedTemplateId = form.watch('templateId');
@@ -264,8 +267,11 @@ export default function AdminNewCardPage() {
                         <FormLabel>Card Design</FormLabel>
                         <FormControl>
                           <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            onValueChange={(value) => {
+                              console.log("Template selected:", value);
+                              field.onChange(value);
+                            }}
+                            value={field.value}
                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                           >
                             {templates.map((template) => {
@@ -279,15 +285,20 @@ export default function AdminNewCardPage() {
                                   />
                                   <label
                                     htmlFor={`template-${template.id}`}
-                                    className="flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-muted/50 peer-checked:border-primary"
+                                    className={`flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-muted/50 transition-all duration-200 ${form.watch('templateId') === template.id.toString() ? 'border-primary ring-2 ring-primary ring-opacity-50' : 'border-muted'}`}
                                   >
                                     <div
-                                      className="w-full h-32 rounded-md mb-2 flex items-center justify-center"
+                                      className="w-full h-32 rounded-md mb-2 flex items-center justify-center relative"
                                       style={{ 
                                         background: templateStyles.background,
                                         color: templateStyles.textColor
                                       }}
                                     >
+                                      {form.watch('templateId') === template.id.toString() && (
+                                        <div className="absolute top-2 right-2 bg-primary text-white text-xs rounded-full p-1 w-5 h-5 flex items-center justify-center">
+                                          ✓
+                                        </div>
+                                      )}
                                       <div className="text-center">
                                         <div className="text-sm font-medium mb-1" style={{ color: templateStyles.accent }}>
                                           {template.name}
