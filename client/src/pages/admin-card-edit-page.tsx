@@ -98,9 +98,22 @@ export default function AdminCardEditPage() {
     queryKey: ['/api/cards', cardId],
     queryFn: async () => {
       try {
-        const result = await getQueryFn({ on401: "throw" })();
-        console.log("Raw card data from API:", result);
-        return result;
+        // Direct fetch with explicit URL to avoid path composition issues
+        const response = await fetch(`/api/cards/${cardId}`, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Failed to fetch card: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Raw card data from API:", data);
+        return data;
       } catch (error) {
         console.error("Error fetching card:", error);
         throw error;
@@ -206,7 +219,28 @@ export default function AdminCardEditPage() {
   // Update card mutation
   const updateCardMutation = useMutation({
     mutationFn: async (data: CardEditFormValues) => {
-      return await apiRequest("PUT", `/api/cards/${cardId}`, data);
+      try {
+        // Direct fetch with explicit URL to avoid path composition issues
+        const response = await fetch(`/api/cards/${cardId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Failed to update card: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Error updating card:", error);
+        throw error;
+      }
     },
     onSuccess: async () => {
       toast({
