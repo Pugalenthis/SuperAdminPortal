@@ -268,7 +268,7 @@ export default function AdminTemplatesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredTemplates.length > 0 ? (
                 filteredTemplates.map((template: CardTemplate) => (
-                  <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
                     <div className="aspect-video bg-muted relative">
                       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                         <Grid className="h-12 w-12" />
@@ -281,20 +281,20 @@ export default function AdminTemplatesPage() {
                         </div>
                       )}
                     </div>
-                    <CardHeader>
+                    <CardHeader className="flex-grow">
                       <div className="flex items-center justify-between">
-                        <CardTitle>{template.name}</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl">{template.name}</CardTitle>
                         <Bookmark className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <CardDescription>
+                      <CardDescription className="mt-2 line-clamp-2">
                         {template.description || "A professional business card template"}
                       </CardDescription>
                     </CardHeader>
-                    <CardFooter className="flex flex-col sm:flex-row gap-2">
-                      <div className="flex space-x-2 w-full sm:w-auto">
+                    <CardFooter className="pt-0 pb-4 px-6 grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-2 gap-2 w-full">
                         <Button 
                           variant="outline" 
-                          className="flex-1 sm:flex-initial"
+                          className="h-10"
                           onClick={() => handlePreviewClick(template.id)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
@@ -302,7 +302,7 @@ export default function AdminTemplatesPage() {
                         </Button>
                         <Button
                           variant="outline"
-                          className="flex-1 sm:flex-initial"
+                          className="h-10"
                           onClick={() => navigate(`/admin/template/${template.id}`)}
                         >
                           <Palette className="h-4 w-4 mr-2" />
@@ -310,7 +310,7 @@ export default function AdminTemplatesPage() {
                         </Button>
                       </div>
                       <Button 
-                        className="w-full sm:w-auto min-w-[100px]" 
+                        className="w-full h-10" 
                         onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
                       >
                         Use
@@ -340,26 +340,26 @@ export default function AdminTemplatesPage() {
                 filteredTemplates
                   .filter((template: CardTemplate) => template.type === 'standard' || !template.type)
                   .map((template: CardTemplate) => (
-                    <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
                       <div className="aspect-video bg-muted relative">
                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                           <Grid className="h-12 w-12" />
                         </div>
                       </div>
-                      <CardHeader>
+                      <CardHeader className="flex-grow">
                         <div className="flex items-center justify-between">
-                          <CardTitle>{template.name}</CardTitle>
+                          <CardTitle className="text-xl md:text-2xl">{template.name}</CardTitle>
                           <Bookmark className="h-5 w-5 text-muted-foreground" />
                         </div>
-                        <CardDescription>
+                        <CardDescription className="mt-2 line-clamp-2">
                           {template.description || "A professional business card template"}
                         </CardDescription>
                       </CardHeader>
-                      <CardFooter className="flex flex-col sm:flex-row gap-2">
-                        <div className="flex space-x-2 w-full sm:w-auto">
+                      <CardFooter className="pt-0 pb-4 px-6 grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-2 gap-2 w-full">
                           <Button 
                             variant="outline" 
-                            className="flex-1 sm:flex-initial"
+                            className="h-10"
                             onClick={() => handlePreviewClick(template.id)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
@@ -367,7 +367,7 @@ export default function AdminTemplatesPage() {
                           </Button>
                           <Button
                             variant="outline"
-                            className="flex-1 sm:flex-initial"
+                            className="h-10"
                             onClick={() => navigate(`/admin/template/${template.id}`)}
                           >
                             <Palette className="h-4 w-4 mr-2" />
@@ -375,7 +375,7 @@ export default function AdminTemplatesPage() {
                           </Button>
                         </div>
                         <Button 
-                          className="w-full sm:w-auto min-w-[100px]" 
+                          className="w-full h-10" 
                           onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
                         >
                           Use
@@ -405,7 +405,7 @@ export default function AdminTemplatesPage() {
                 filteredTemplates
                   .filter((template: CardTemplate) => template.type === 'premium')
                   .map((template: CardTemplate) => (
-                    <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
                       <div className="aspect-video bg-muted relative">
                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                           <Grid className="h-12 w-12" />
@@ -416,20 +416,20 @@ export default function AdminTemplatesPage() {
                           </Badge>
                         </div>
                       </div>
-                      <CardHeader>
+                      <CardHeader className="flex-grow">
                         <div className="flex items-center justify-between">
-                          <CardTitle>{template.name}</CardTitle>
+                          <CardTitle className="text-xl md:text-2xl">{template.name}</CardTitle>
                           <Bookmark className="h-5 w-5 text-muted-foreground" />
                         </div>
-                        <CardDescription>
+                        <CardDescription className="mt-2 line-clamp-2">
                           {template.description || "A professional business card template"}
                         </CardDescription>
                       </CardHeader>
-                      <CardFooter className="flex flex-col sm:flex-row gap-2">
-                        <div className="flex space-x-2 w-full sm:w-auto">
+                      <CardFooter className="pt-0 pb-4 px-6 grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-2 gap-2 w-full">
                           <Button 
                             variant="outline" 
-                            className="flex-1 sm:flex-initial"
+                            className="h-10"
                             onClick={() => handlePreviewClick(template.id)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
@@ -437,7 +437,7 @@ export default function AdminTemplatesPage() {
                           </Button>
                           <Button
                             variant="outline"
-                            className="flex-1 sm:flex-initial"
+                            className="h-10"
                             onClick={() => navigate(`/admin/template/${template.id}`)}
                           >
                             <Palette className="h-4 w-4 mr-2" />
@@ -445,7 +445,7 @@ export default function AdminTemplatesPage() {
                           </Button>
                         </div>
                         <Button 
-                          className="w-full sm:w-auto min-w-[100px]" 
+                          className="w-full h-10" 
                           onClick={() => navigate(`/admin/new-card?template=${template.id}`)}
                         >
                           Use
@@ -472,7 +472,7 @@ export default function AdminTemplatesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCustomTemplates && filteredCustomTemplates.length > 0 ? (
                 filteredCustomTemplates.map((template: CustomTemplate) => (
-                  <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
                     <div className="aspect-video bg-muted relative">
                       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                         <FileEdit className="h-12 w-12" />
@@ -483,9 +483,9 @@ export default function AdminTemplatesPage() {
                         </Badge>
                       </div>
                     </div>
-                    <CardHeader>
+                    <CardHeader className="flex-grow">
                       <div className="flex items-center justify-between">
-                        <CardTitle>{template.name}</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl">{template.name}</CardTitle>
                         <div className="flex items-center space-x-1">
                           <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(template)}>
                             <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
@@ -493,15 +493,15 @@ export default function AdminTemplatesPage() {
                           </Button>
                         </div>
                       </div>
-                      <CardDescription>
+                      <CardDescription className="mt-2 line-clamp-2">
                         {template.description || "A customized business card template"}
                       </CardDescription>
                     </CardHeader>
-                    <CardFooter className="flex flex-col sm:flex-row gap-2">
-                      <div className="flex space-x-2 w-full sm:w-auto">
+                    <CardFooter className="pt-0 pb-4 px-6 grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-1 gap-2 w-full">
                         <Button 
                           variant="outline" 
-                          className="flex-1 sm:flex-initial"
+                          className="h-10"
                           onClick={() => handlePreviewClick(template.id, true)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
@@ -509,7 +509,7 @@ export default function AdminTemplatesPage() {
                         </Button>
                       </div>
                       <Button 
-                        className="w-full sm:w-auto min-w-[100px]" 
+                        className="w-full h-10"
                         onClick={() => navigate(`/admin/new-card?customTemplate=${template.id}`)}
                       >
                         Use
