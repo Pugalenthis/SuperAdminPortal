@@ -31,7 +31,7 @@ export function DeleteConfirmModal({
 
   const deleteAdminMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/admins/${id}`);
+      await apiRequest(`/api/admins/${id}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admins"] });
