@@ -455,7 +455,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const cards = await storage.getBusinessCardsByEmployeeId(employeeId);
-      res.json(cards);
+      
+      // Enhance cards with custom template information
+      const enhancedCards = await Promise.all(
+        cards.map(async (card) => {
+          // If the card uses a custom template, fetch it
+          if (card.customTemplateId) {
+            const customTemplate = await storage.getCustomTemplate(card.customTemplateId);
+            return {
+              ...card,
+              customTemplate
+            };
+          }
+          return card;
+        })
+      );
+      
+      res.json(enhancedCards);
     } catch (error) {
       console.error("Error fetching cards:", error);
       res.status(500).json({ message: "Failed to fetch business cards" });
