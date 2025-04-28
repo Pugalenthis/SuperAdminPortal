@@ -379,7 +379,7 @@ export default function AdminCardsPage() {
                               <Eye className="h-4 w-4 mr-2" />
                               View Card
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/admin/cards/${card.id}/edit`)}>
+                            <DropdownMenuItem onClick={() => navigate(`/admin/cards/${card.id}/edit?refresh=${Date.now()}`)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Edit Card
                             </DropdownMenuItem>

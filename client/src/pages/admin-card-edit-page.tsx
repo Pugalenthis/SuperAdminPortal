@@ -53,10 +53,13 @@ type CardEditFormValues = z.infer<typeof cardEditFormSchema>;
 
 export default function AdminCardEditPage() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { cardId } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cardStatus, setCardStatus] = useState<string>('active');
+  
+  // Check for refresh parameter in URL
+  const refreshParam = location.includes('refresh=') ? new URLSearchParams(location.split('?')[1]).get('refresh') : null;
   
   // Navigation function
   const navigate = useCallback((path: string) => {
@@ -136,6 +139,14 @@ export default function AdminCardEditPage() {
     return () => subscription.unsubscribe();
   }, [form]);
   
+  // Force data refresh when refreshParam changes
+  useEffect(() => {
+    if (refreshParam && refetchCard) {
+      console.log("Forcing card data refresh due to URL parameter");
+      refetchCard();
+    }
+  }, [refreshParam, refetchCard]);
+
   // Update form values when card data is loaded AND templates are loaded
   useEffect(() => {
     if (card && templates && templates.length > 0) {
