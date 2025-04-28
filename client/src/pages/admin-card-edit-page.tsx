@@ -344,13 +344,31 @@ export default function AdminCardEditPage() {
       }
       
       // Prepare data for server - separate templateId and customTemplateId
+      // First check if the selected template exists in the appropriate collection
+      const selectedTemplateId = values.templateId;
+      const isValidStandardTemplate = templates.some((t: any) => t.id === selectedTemplateId);
+      const isValidCustomTemplate = customTemplates.some((t: any) => t.id === selectedTemplateId);
+      
+      console.log(`Template selection check - ID: ${selectedTemplateId}, Is standard: ${isValidStandardTemplate}, Is custom: ${isValidCustomTemplate}`);
+      
+      // Determine if this is actually a custom template based on where it exists
+      const actuallyIsCustomTemplate = templateInfo.isCustomTemplate && isValidCustomTemplate;
+      
       const dataToSubmit = {
-        templateId: templateInfo.isCustomTemplate 
+        // For template ID: 
+        // - If using standard template, use the selected ID
+        // - If using custom template, use the base ID or keep existing
+        templateId: actuallyIsCustomTemplate 
           ? (card?.templateId || 1) // Keep original or use default if using custom template
           : values.templateId,
-        customTemplateId: templateInfo.isCustomTemplate 
-          ? values.templateId // Use the selected ID as customTemplateId if it's a custom template
+          
+        // For custom template ID:
+        // - If using custom template and the ID exists in custom templates, use it
+        // - Otherwise set to null (using standard template)
+        customTemplateId: actuallyIsCustomTemplate && isValidCustomTemplate
+          ? values.templateId // Use selected ID as customTemplateId if it's a valid custom template
           : null, // Clear customTemplateId if using standard template
+          
         status: values.status,
         customization: values.customization
       };
