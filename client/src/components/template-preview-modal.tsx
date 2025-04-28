@@ -48,7 +48,9 @@ export function TemplatePreviewModal({
   });
   
   // Determine which template to use for display
-  const template = isCustomTemplate ? customTemplate : standardTemplate;
+  const template = isCustomTemplate 
+    ? (Array.isArray(customTemplate) ? customTemplate[0] : customTemplate)
+    : standardTemplate;
   
   // Preview styles with defaults
   const [previewColors, setPreviewColors] = useState({
@@ -83,36 +85,43 @@ export function TemplatePreviewModal({
   // Update preview styles when template is loaded - either standard or custom
   useEffect(() => {
     console.log("Template preview update - isCustom:", isCustomTemplate, "templateId:", templateId, "open:", open);
-    console.log("Template data:", isCustomTemplate ? customTemplate : standardTemplate);
     
     // Only proceed if the dialog is open
     if (!open) return;
     
-    if (isCustomTemplate && customTemplate?.customization) {
-      // For custom templates, use the customization data
-      console.log("Updating preview from custom template:", customTemplate.customization);
+    // Custom template handling
+    if (isCustomTemplate && customTemplate) {
+      // Check if the customTemplate is an array (some API responses wrap the object in an array)
+      const customTemplateData = Array.isArray(customTemplate) ? customTemplate[0] : customTemplate;
+      console.log("Custom template data:", customTemplateData);
       
-      const customization = customTemplate.customization as any;
-      
-      // When updating from a custom template, do a full reset first to avoid stale values
-      const newColors = {
-        primary: "#0f766e",
-        secondary: "#f59e0b",
-        text: "#1e293b",
-        background: "#ffffff",
-        ...customization.colors
-      };
-      
-      console.log("Setting custom template colors to:", newColors);
-      setPreviewColors(newColors);
-      
-      if (customization.fonts) {
-        setPreviewFonts({
-          headingFont: "Inter",
-          bodyFont: "Roboto",
-          ...customization.fonts
-        });
+      if (customTemplateData?.customization) {
+        // For custom templates, use the customization data
+        console.log("Updating preview from custom template:", customTemplateData.customization);
+        
+        const customization = customTemplateData.customization as any;
+        
+        // When updating from a custom template, do a full reset first to avoid stale values
+        const newColors = {
+          primary: "#0f766e",
+          secondary: "#f59e0b",
+          text: "#1e293b",
+          background: "#ffffff",
+          ...customization.colors
+        };
+        
+        console.log("Setting custom template colors to:", newColors);
+        setPreviewColors(newColors);
+        
+        if (customization.fonts) {
+          setPreviewFonts({
+            headingFont: "Inter",
+            bodyFont: "Roboto",
+            ...customization.fonts
+          });
+        }
       }
+    // Standard template handling  
     } else if (!isCustomTemplate && standardTemplate?.template) {
       // For standard templates, use the template data
       console.log("Updating preview from standard template:", standardTemplate.template);
