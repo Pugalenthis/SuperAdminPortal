@@ -601,11 +601,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Extract fields that can be updated
-      const { templateId, customization, status } = req.body;
+      const { templateId, customTemplateId, customization, status } = req.body;
+      
+      // Log the update data for debugging
+      console.log("Updating business card with data:", { 
+        cardId, templateId, customTemplateId, status 
+      });
       
       // Update the card
       const updatedCard = await storage.updateBusinessCard(cardId, {
         templateId,
+        customTemplateId,
         customization,
         status
       });

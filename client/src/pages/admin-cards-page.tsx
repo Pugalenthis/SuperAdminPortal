@@ -78,9 +78,35 @@ export default function AdminCardsPage() {
     refetch: refetchCards 
   } = useQuery({
     queryKey: ['/api/cards'],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryFn: async () => {
+      try {
+        // Direct fetch with explicit URL to avoid caching issues
+        const response = await fetch('/api/cards', {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          },
+          cache: 'no-store' // Important: don't cache this request
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Failed to fetch cards: ${response.status}`);
+        }
+        
+        console.log("Manually refreshing cards list with forced cache reset");
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Error fetching cards:", error);
+        throw error;
+      }
+    },
     retry: false,
-    enabled: !!user && user.userType === 'admin'
+    enabled: !!user && user.userType === 'admin',
+    refetchOnWindowFocus: true, // Refetch when window gets focus
+    cacheTime: 0, // Don't cache this query
+    staleTime: 0, // Consider data stale immediately
   });
   
   // Fetch all templates for reference

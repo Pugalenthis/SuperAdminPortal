@@ -105,7 +105,8 @@ export default function AdminCardEditPage() {
           credentials: 'include',
           headers: {
             'Accept': 'application/json'
-          }
+          },
+          cache: 'no-store' // Important: don't cache this request
         });
         
         if (!response.ok) {
@@ -145,6 +146,9 @@ export default function AdminCardEditPage() {
         console.log("Templates available:", templates);
       }
     },
+    refetchOnWindowFocus: true, // Refetch when window gets focus
+    cacheTime: 0, // Don't cache this query at all
+    staleTime: 0, // Consider data stale immediately so it always refetches
   });
   
   // Fetch all base templates for the dropdown
