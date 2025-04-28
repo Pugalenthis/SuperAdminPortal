@@ -56,7 +56,8 @@ export default function AdminCardEditPage() {
   const [location, setLocation] = useLocation();
   const { cardId } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [cardStatus, setCardStatus] = useState<string>('active');
+  // Initialize cardStatus to null (undefined), so it doesn't show as active by default
+  const [cardStatus, setCardStatus] = useState<string | null>(null);
   
   // Check for refresh parameter in URL
   const refreshParam = location.includes('refresh=') ? new URLSearchParams(location.split('?')[1]).get('refresh') : null;
@@ -99,8 +100,13 @@ export default function AdminCardEditPage() {
     retry: false,
     enabled: !!user && user.userType === 'admin' && !!cardId,
     onSuccess: (data) => {
-      console.log("Card data received:", data);
+      console.log("Card data received:", JSON.stringify(data));
       console.log("Card status from API:", data?.status);
+      
+      if (data && data.status) {
+        // Immediately set the card status from the API data
+        setCardStatus(data.status);
+      }
       
       if (data && templates.length > 0) {
         console.log("Templates available:", templates);
@@ -124,7 +130,8 @@ export default function AdminCardEditPage() {
     resolver: zodResolver(cardEditFormSchema),
     defaultValues: {
       templateId: 0,
-      status: 'active',
+      // Don't set a default status - we want to use the one from the API
+      status: undefined as unknown as string,
       customization: {},
     },
   });
@@ -155,21 +162,25 @@ export default function AdminCardEditPage() {
         ? card.templateId 
         : templates.length > 0 ? templates[0].id : 0;
       
-      // Get the actual card status
-      const status = card.status || 'active';
+      // Get the actual card status from API data
+      // Use the exact value from the API with no fallback
+      const status = card.status;
       
       console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
-      console.log("Card status:", status);
+      console.log("Card status from API (direct):", status);
       
-      // Update our state variable for card status
-      setCardStatus(status);
-      
-      // Reset form with the correct values
-      form.reset({
-        templateId,
-        status,
-        customization: card.customization || {},
-      });
+      if (status) {
+        // Update our state variable for card status
+        console.log("Updating cardStatus state to:", status);
+        setCardStatus(status);
+        
+        // Reset form with the correct values
+        form.reset({
+          templateId,
+          status,
+          customization: card.customization || {},
+        });
+      }
     }
   }, [card, templates, form]);
   
@@ -325,8 +336,11 @@ export default function AdminCardEditPage() {
                       <FormControl>
                         <Switch
                           checked={cardStatus === "active"}
+                          // Don't render the switch until we have a definite cardStatus from the API
+                          disabled={cardStatus === null}
                           onCheckedChange={(checked) => {
                             const newStatus = checked ? "active" : "inactive";
+                            console.log("Switch toggled to:", newStatus);
                             setCardStatus(newStatus);
                             field.onChange(newStatus);
                             // Mark form as dirty
