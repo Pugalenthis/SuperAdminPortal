@@ -18,6 +18,11 @@ import path from 'path';
 import fs from 'fs/promises';
 import { promisify } from 'util';
 import sharp from 'sharp';
+import { fileURLToPath } from 'url';
+
+// Set up __dirname equivalent for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Helper function to get image dimensions
 async function getImageDimensions(imageBuffer: Buffer) {
