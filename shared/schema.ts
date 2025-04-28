@@ -58,12 +58,25 @@ export const customTemplates = pgTable("custom_templates", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Company Cards table
+export const companyCards = pgTable("company_cards", {
+  id: serial("id").primaryKey(),
+  adminId: integer("admin_id").notNull().references(() => admins.id, { onDelete: 'cascade' }),
+  imagePath: text("image_path").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Business Cards table
 export const businessCards = pgTable("business_cards", {
   id: serial("id").primaryKey(),
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: 'cascade' }),
   templateId: integer("template_id").notNull().references(() => cardTemplates.id),
   customTemplateId: integer("custom_template_id").references(() => customTemplates.id),
+  companyCardId: integer("company_card_id").references(() => companyCards.id),
   customization: json("customization"),
   uniqueUrl: text("unique_url").notNull().unique(),
   status: text("status").notNull().default("active"),
@@ -75,6 +88,14 @@ export const businessCards = pgTable("business_cards", {
 export const adminsRelations = relations(admins, ({ many }) => ({
   employees: many(employees),
   customTemplates: many(customTemplates),
+  companyCards: many(companyCards),
+}));
+
+export const companyCardsRelations = relations(companyCards, ({ one }) => ({
+  admin: one(admins, {
+    fields: [companyCards.adminId],
+    references: [admins.id],
+  }),
 }));
 
 export const employeesRelations = relations(employees, ({ one, many }) => ({
@@ -109,6 +130,10 @@ export const businessCardsRelations = relations(businessCards, ({ one }) => ({
     fields: [businessCards.customTemplateId],
     references: [customTemplates.id],
   }),
+  companyCard: one(companyCards, {
+    fields: [businessCards.companyCardId],
+    references: [companyCards.id],
+  }),
 }));
 
 // Schema for creating a new super admin
@@ -136,6 +161,11 @@ export const insertCustomTemplateSchema = createInsertSchema(customTemplates);
 export type InsertCustomTemplate = z.infer<typeof insertCustomTemplateSchema>;
 export type CustomTemplate = typeof customTemplates.$inferSelect;
 
+// Schema for creating a new company card
+export const insertCompanyCardSchema = createInsertSchema(companyCards);
+export type InsertCompanyCard = z.infer<typeof insertCompanyCardSchema>;
+export type CompanyCard = typeof companyCards.$inferSelect;
+
 // Schema for creating a new business card
 export const insertBusinessCardSchema = createInsertSchema(businessCards);
 export type InsertBusinessCard = z.infer<typeof insertBusinessCardSchema>;
@@ -159,3 +189,13 @@ export const employeeFormSchema = z.object({
   profileImage: z.string().optional(),
 });
 export type EmployeeForm = z.infer<typeof employeeFormSchema>;
+
+// Company Card upload schema for validation
+export const companyCardFormSchema = z.object({
+  imagePath: z.string().min(1, "Company card image is required"),
+  adminId: z.number(),
+  width: z.number().default(1066),
+  height: z.number().default(445),
+  isActive: z.boolean().default(true),
+});
+export type CompanyCardForm = z.infer<typeof companyCardFormSchema>;
