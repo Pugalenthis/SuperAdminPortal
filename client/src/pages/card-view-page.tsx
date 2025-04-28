@@ -260,18 +260,15 @@ export default function CardViewPage() {
         {/* Company Card Section (Bottom Section - 1066px × 445px) */}
         {companyCard ? (
           <>
-            {console.log("Company Card Data:", companyCard)}
             <div
               className="w-full border-t"
               style={{
                 aspectRatio: '1066/445',
-                backgroundImage: `url(http://localhost:5000${companyCard.imagePath})`,
+                backgroundImage: `url(${companyCard.imagePath})`,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                border: '2px solid blue' 
+                backgroundPosition: 'center'
               }}
             />
-            <small className="text-xs text-gray-500 p-1">Image path: {companyCard.imagePath}</small>
           </>
         ) : (
           <div 
