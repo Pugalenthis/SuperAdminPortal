@@ -1,335 +1,374 @@
-import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { getQueryFn, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ArrowLeft, Upload, Trash2, Building2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Upload, AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { CompanyCard } from "@shared/schema";
 
 export default function AdminOrganizationPage() {
-  const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   
-  // Query to get active company card
-  const { data: activeCard, isLoading: isLoadingActive } = useQuery({
-    queryKey: ['/api/company-cards/active'],
-    enabled: !!user,
+  // Navigation function
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
+  
+  // Fetch user data
+  const { data: userData } = useQuery({
+    queryKey: ['/api/user'],
+    queryFn: getQueryFn({ on401: "throw" }),
+    retry: false,
   });
   
-  // Query to get all company cards
-  const { data: companyCards, isLoading: isLoadingCards } = useQuery({
-    queryKey: ['/api/company-cards'],
-    enabled: !!user,
+  // Fetch company card
+  const { data: companyCards, isLoading: companyCardLoading, refetch: refetchCompanyCard } = useQuery<CompanyCard[]>({
+    queryKey: ['/api/company-card'],
+    queryFn: getQueryFn({ on401: "throw" }),
+    retry: false,
   });
   
-  // Mutation to upload a new company card
+  // Upload company card mutation
   const uploadMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const response = await apiRequest('/api/company-cards', { 
-        method: 'POST',
-        body: data
-      });
-      return response;
+    mutationFn: async (formData: FormData) => {
+      return await apiRequest('/api/company-card', 'POST', formData);
     },
     onSuccess: () => {
       toast({
-        title: "Company card uploaded successfully",
-        description: "Your company card has been uploaded and is now active.",
+        title: "Company card uploaded",
+        description: "Your company branding has been updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/company-cards'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/company-cards/active'] });
-      
-      // Reset the form
-      setFile(null);
-      setPreviewUrl(null);
+      refetchCompanyCard();
+      // Clear the preview and file input
+      setFilePreview(null);
+      setUploadFile(null);
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to upload company card",
-        description: error.message || "An error occurred while uploading your company card.",
-        variant: "destructive",
+        title: "Upload failed",
+        description: error.message || "Failed to upload company card. Please try again.",
+        variant: "destructive"
       });
     }
   });
   
-  // Mutation to delete a company card
+  // Delete company card mutation
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest(`/api/company-cards/${id}`, { 
-        method: 'DELETE'
-      });
-      return response;
+    mutationFn: async () => {
+      return await apiRequest('/api/company-card', 'DELETE');
     },
     onSuccess: () => {
       toast({
-        title: "Company card deleted successfully",
-        description: "The company card has been removed.",
+        title: "Company card deleted",
+        description: "Your company branding has been removed",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/company-cards'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/company-cards/active'] });
-      setDeleteDialogOpen(false);
+      refetchCompanyCard();
+      setDeleteConfirmOpen(false);
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to delete company card",
-        description: error.message || "An error occurred while deleting the company card.",
-        variant: "destructive",
+        title: "Delete failed",
+        description: error.message || "Failed to remove company card. Please try again.",
+        variant: "destructive"
       });
+      setDeleteConfirmOpen(false);
     }
   });
-
+  
+  // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.includes('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file",
+          variant: "destructive"
+        });
+        return;
+      }
       
-      // Create a preview URL
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
+      setUploadFile(file);
+      
+      // Create a preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFilePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
-
+  
+  // Handle upload
   const handleUpload = async () => {
-    if (!file) {
+    if (!uploadFile) {
       toast({
         title: "No file selected",
-        description: "Please select an image file to upload.",
-        variant: "destructive",
+        description: "Please select an image file to upload",
+        variant: "destructive"
       });
       return;
     }
     
-    // Create form data for upload
     const formData = new FormData();
-    formData.append('image', file);
-    formData.append('imagePath', file.name);
-    formData.append('width', '1066');
-    formData.append('height', '445');
-    formData.append('isActive', 'true');
+    formData.append('image', uploadFile);
     
-    // Upload the file
-    uploadMutation.mutate(formData);
+    await uploadMutation.mutateAsync(formData);
   };
-
-  const handleDeleteClick = (id: number) => {
-    setSelectedCardId(id);
-    setDeleteDialogOpen(true);
+  
+  // Handle delete
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    await deleteMutation.mutateAsync();
+    setIsDeleting(false);
   };
-
-  const confirmDelete = () => {
-    if (selectedCardId) {
-      deleteMutation.mutate(selectedCardId);
-    }
+  
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
   };
-
+  
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">Organization Settings</h1>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-4">
+          <Button variant="ghost" className="mb-2" onClick={() => navigate('/admin/dashboard')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <h1 className="text-2xl font-bold">Organization Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your organization branding and settings
+          </p>
+        </div>
+      </header>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
+      <main className="container mx-auto px-4 py-6">
+        {/* Company Card Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  <CardTitle>Company Card</CardTitle>
+                </div>
+                <CardDescription>
+                  Upload your company branding section for business cards
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="company-logo" className="block mb-2">Upload Image (1066px × 445px)</Label>
+                    <Input 
+                      id="company-logo" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileChange}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Recommended dimensions: 1066px × 445px
+                    </p>
+                  </div>
+                  
+                  {filePreview && (
+                    <div className="border rounded-md overflow-hidden">
+                      <div className="relative">
+                        <img
+                          src={filePreview}
+                          alt="Company card preview"
+                          className="max-w-full h-auto"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button 
+                  variant="outline" 
+                  disabled={!uploadFile || uploadMutation.isPending}
+                  onClick={() => {
+                    setFilePreview(null);
+                    setUploadFile(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleUpload} 
+                  disabled={!uploadFile || uploadMutation.isPending}
+                >
+                  {uploadMutation.isPending ? "Uploading..." : "Upload Card"}
+                  <Upload className="h-4 w-4 ml-2" />
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Company Card</CardTitle>
+                <CardDescription>
+                  Your company branding section that appears on all business cards
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {companyCardLoading ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                  </div>
+                ) : companyCards && companyCards.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="border rounded-md overflow-hidden">
+                      {companyCards.map((card) => (
+                        <div key={card.id} className="relative">
+                          <img
+                            src={card.imagePath}
+                            alt="Company card"
+                            className="max-w-full h-auto"
+                          />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => setDeleteConfirmOpen(true)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {companyCards[0] && (
+                      <div className="text-sm text-muted-foreground">
+                        <p>Dimensions: {companyCards[0].width} × {companyCards[0].height} pixels</p>
+                        <p>Uploaded: {formatDate(companyCards[0].createdAt.toString())}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-40 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                    <Building2 className="h-12 w-12 opacity-20" />
+                    <p>No company card uploaded yet</p>
+                    <p className="text-sm">Upload your company branding section for business cards</p>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                {companyCards && companyCards.length > 0 && (
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    disabled={isDeleting}
+                    className="ml-auto"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete Card"}
+                    <Trash2 className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Company Information */}
+        <div className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Company Card</CardTitle>
+              <CardTitle>Organization Information</CardTitle>
               <CardDescription>
-                Upload a company card image that will be displayed in the bottom section of all business cards.
-                The recommended size is 1066px × 445px.
+                Your organization details used across the platform
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingActive ? (
-                <div className="flex justify-center items-center h-40">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                </div>
-              ) : activeCard ? (
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Current Active Company Card</h3>
-                  <div className="border rounded-md overflow-hidden">
-                    <img 
-                      src={activeCard.imagePath} 
-                      alt="Active company card" 
-                      className="w-full h-auto" 
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <div className="flex-1">
+                    <Label htmlFor="org-name" className="block mb-2">Organization Name</Label>
+                    <Input 
+                      id="org-name" 
+                      value={userData?.orgName || ''} 
+                      readOnly
+                      className="bg-muted" 
                     />
                   </div>
-                  <div className="mt-2 text-sm text-gray-500">
-                    <p>Size: {activeCard.width}px × {activeCard.height}px</p>
-                    <p>Uploaded: {new Date(activeCard.createdAt).toLocaleDateString()}</p>
+                  <div className="flex-1">
+                    <Label htmlFor="org-email" className="block mb-2">Admin Email</Label>
+                    <Input 
+                      id="org-email" 
+                      value={userData?.email || ''} 
+                      readOnly 
+                      className="bg-muted"
+                    />
                   </div>
                 </div>
-              ) : (
-                <Alert variant="default" className="bg-yellow-50 border-yellow-200">
-                  <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                  <AlertTitle>No company card found</AlertTitle>
-                  <AlertDescription>
-                    You haven't uploaded a company card yet. Business cards will only show employee information.
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              <Separator className="my-6" />
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Upload New Company Card</h3>
-                <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="company-card">Company Card Image</Label>
-                  <Input 
-                    id="company-card" 
-                    type="file" 
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                </div>
-                
-                {previewUrl && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium mb-2">Preview</h4>
-                    <div className="border rounded-md overflow-hidden">
-                      <img 
-                        src={previewUrl} 
-                        alt="Company card preview" 
-                        className="w-full h-auto" 
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                <Button 
-                  onClick={handleUpload} 
-                  disabled={!file || uploadMutation.isPending}
-                  className="flex items-center gap-2"
-                >
-                  {uploadMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4" />
-                      Upload Card
-                    </>
-                  )}
-                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
-        
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Card History</CardTitle>
-              <CardDescription>
-                View and manage all company cards that have been uploaded.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingCards ? (
-                <div className="flex justify-center items-center h-40">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                </div>
-              ) : companyCards && companyCards.length > 0 ? (
-                <div className="space-y-4">
-                  {companyCards.map((card: any) => (
-                    <div key={card.id} className="border rounded-md p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium">Company Card #{card.id}</h3>
-                            {card.isActive && (
-                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3" />
-                                Active
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Uploaded: {new Date(card.createdAt).toLocaleDateString()}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Size: {card.width}px × {card.height}px
-                          </p>
-                        </div>
-                        <Button 
-                          variant="destructive" 
-                          size="icon"
-                          onClick={() => handleDeleteClick(card.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="mt-2">
-                        <img 
-                          src={card.imagePath} 
-                          alt={`Company card ${card.id}`}
-                          className="w-full h-auto border rounded"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-8 text-gray-500">
-                  <p>No company cards found</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      </main>
       
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Company Card</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this company card? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={confirmDelete}
-              disabled={deleteMutation.isPending}
-              className="flex items-center gap-2"
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your company card from all business cards.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4" />
-                  Delete Card
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              {isDeleting ? "Deleting..." : "Delete Company Card"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -138,7 +138,7 @@ export default function AdminDashboardPage() {
         </Card>
         
         {/* Main Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader>
               <CardTitle>Employees</CardTitle>
@@ -204,6 +204,29 @@ export default function AdminDashboardPage() {
             <CardFooter>
               <Button variant="outline" className="w-full" onClick={() => navigate('/admin/templates')}>
                 Browse Templates
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Organization</CardTitle>
+              <CardDescription>Manage organization settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Building2 className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">Settings</p>
+                  <p className="text-muted-foreground">Company branding</p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/admin/organization')}>
+                Organization Settings
               </Button>
             </CardFooter>
           </Card>

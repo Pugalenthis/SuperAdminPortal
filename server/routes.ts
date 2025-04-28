@@ -13,6 +13,24 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { z } from "zod";
+import path from 'path';
+import fs from 'fs/promises';
+import { promisify } from 'util';
+import sharp from 'sharp';
+
+// Helper function to get image dimensions
+async function getImageDimensions(imageBuffer: Buffer) {
+  try {
+    const metadata = await sharp(imageBuffer).metadata();
+    return {
+      width: metadata.width || 0,
+      height: metadata.height || 0
+    };
+  } catch (error) {
+    console.error("Error getting image dimensions:", error);
+    return null;
+  }
+}
 
 // Helper function to check if user is authenticated
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
@@ -1108,6 +1126,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting custom template:", error);
       res.status(500).json({ message: "Failed to delete custom template" });
+    }
+  });
+
+  /************************************
+   * ADMIN ROUTES - ORGANIZATION COMPANY CARD
+   ************************************/
+  
+  // Get active company card for the admin
+  app.get("/api/company-card", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const companyCards = await storage.getCompanyCardsByAdminId(adminId);
+      res.json(companyCards);
+    } catch (error) {
+      console.error("Error fetching company card:", error);
+      res.status(500).json({ message: "Failed to fetch company card" });
+    }
+  });
+
+  // Upload new company card image
+  app.post("/api/company-card", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      
+      // Check if we have a file in the request
+      if (!req.files || !req.files.image) {
+        return res.status(400).json({ message: "No image file uploaded" });
+      }
+      
+      const imageFile = req.files.image;
+      
+      // Validate file type
+      if (!imageFile.mimetype.startsWith('image/')) {
+        return res.status(400).json({ message: "Uploaded file is not an image" });
+      }
+      
+      // Get image dimensions
+      const dimensions = await getImageDimensions(imageFile.data);
+      if (!dimensions) {
+        return res.status(400).json({ message: "Could not determine image dimensions" });
+      }
+      
+      // Create a unique filename
+      const timestamp = Date.now();
+      const filename = `company_card_${adminId}_${timestamp}${path.extname(imageFile.name)}`;
+      const uploadPath = path.join(__dirname, '../public/uploads', filename);
+      const publicPath = `/uploads/${filename}`;
+      
+      // Ensure the uploads directory exists
+      await fs.mkdir(path.join(__dirname, '../public/uploads'), { recursive: true });
+      
+      // Save the file
+      await new Promise<void>((resolve, reject) => {
+        imageFile.mv(uploadPath, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      
+      // Create entry in database
+      const companyCard = await storage.createCompanyCard({
+        adminId,
+        imagePath: publicPath,
+        width: dimensions.width,
+        height: dimensions.height,
+        status: 'active'
+      });
+      
+      res.status(201).json(companyCard);
+    } catch (error) {
+      console.error("Error uploading company card:", error);
+      res.status(500).json({ message: "Failed to upload company card" });
+    }
+  });
+
+  // Delete company card
+  app.delete("/api/company-card", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      
+      // Get all company cards for this admin
+      const companyCards = await storage.getCompanyCardsByAdminId(adminId);
+      
+      if (!companyCards || companyCards.length === 0) {
+        return res.status(404).json({ message: "No company cards found" });
+      }
+      
+      // Delete all company cards (typically there should be only one active card)
+      let success = true;
+      for (const card of companyCards) {
+        // Delete the file from the filesystem if it exists
+        try {
+          if (card.imagePath) {
+            const filePath = path.join(__dirname, '../public', card.imagePath);
+            await fs.unlink(filePath);
+          }
+        } catch (fileError) {
+          console.error("Error deleting company card file:", fileError);
+          // Continue even if file deletion fails
+        }
+        
+        // Delete from database
+        const deleteResult = await storage.deleteCompanyCard(card.id);
+        if (!deleteResult) {
+          success = false;
+        }
+      }
+      
+      if (success) {
+        res.status(200).json({ message: "Company card deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete company card" });
+      }
+    } catch (error) {
+      console.error("Error deleting company card:", error);
+      res.status(500).json({ message: "Failed to delete company card" });
     }
   });
 
