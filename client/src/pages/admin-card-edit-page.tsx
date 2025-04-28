@@ -56,6 +56,7 @@ export default function AdminCardEditPage() {
   const [, setLocation] = useLocation();
   const { cardId } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cardStatus, setCardStatus] = useState<string>('active');
   
   // Navigation function
   const navigate = useCallback((path: string) => {
@@ -122,6 +123,16 @@ export default function AdminCardEditPage() {
     },
   });
   
+  // Watch for form changes to update cardStatus
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "status" && value.status) {
+        setCardStatus(value.status);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+  
   // Update form values when card data is loaded AND templates are loaded
   useEffect(() => {
     if (card && templates && templates.length > 0) {
@@ -130,11 +141,19 @@ export default function AdminCardEditPage() {
         ? card.templateId 
         : templates.length > 0 ? templates[0].id : 0;
       
-      console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
+      // Get the actual card status
+      const status = card.status || 'active';
       
+      console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
+      console.log("Card status:", status);
+      
+      // Update our state variable for card status
+      setCardStatus(status);
+      
+      // Reset form with the correct values
       form.reset({
         templateId,
-        status: card.status || 'active',
+        status,
         customization: card.customization || {},
       });
     }
@@ -167,6 +186,8 @@ export default function AdminCardEditPage() {
   // Form submission handler
   const onSubmit = async (values: CardEditFormValues) => {
     setIsSubmitting(true);
+    // Make sure cardStatus is updated before submission
+    setCardStatus(values.status);
     try {
       await updateCardMutation.mutateAsync(values);
     } finally {
@@ -289,9 +310,11 @@ export default function AdminCardEditPage() {
                       </div>
                       <FormControl>
                         <Switch
-                          checked={field.value === "active"}
+                          checked={cardStatus === "active"}
                           onCheckedChange={(checked) => {
-                            field.onChange(checked ? "active" : "inactive");
+                            const newStatus = checked ? "active" : "inactive";
+                            setCardStatus(newStatus);
+                            field.onChange(newStatus);
                             // Mark form as dirty
                             form.formState.dirtyFields.status = true;
                           }}
