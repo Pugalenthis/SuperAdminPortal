@@ -56,6 +56,20 @@ export default function CardViewPage() {
           ? JSON.parse(customTemplate.customization) 
           : customTemplate.customization;
         
+        console.log("Custom template data:", customTemplateData);
+        
+        // Handle different style structures
+        // The custom templates use a nested 'colors' object with 'primary', 'text', etc.
+        if (customTemplateData.colors) {
+          return {
+            background: customTemplateData.colors.background || defaultStyles.background,
+            textColor: customTemplateData.colors.text || defaultStyles.textColor,
+            accent: customTemplateData.colors.primary || defaultStyles.accent,
+            layout: customTemplateData.layout || defaultStyles.layout
+          };
+        }
+        
+        // Fallback to looking for direct properties
         return {
           background: customTemplateData.background || defaultStyles.background,
           textColor: customTemplateData.textColor || defaultStyles.textColor,
@@ -69,6 +83,19 @@ export default function CardViewPage() {
         ? JSON.parse(template.template) 
         : template.template;
       
+      console.log("Standard template data:", templateData);
+      
+      // Handle nested color object structure if present (for consistency)
+      if (templateData.colors) {
+        return {
+          background: templateData.colors.background || defaultStyles.background,
+          textColor: templateData.colors.text || defaultStyles.textColor,
+          accent: templateData.colors.primary || defaultStyles.accent,
+          layout: templateData.layout || defaultStyles.layout
+        };
+      }
+      
+      // Fallback to standard properties
       return {
         background: templateData.background || defaultStyles.background,
         textColor: templateData.textColor || defaultStyles.textColor,
