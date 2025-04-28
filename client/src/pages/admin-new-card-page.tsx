@@ -166,7 +166,7 @@ export default function AdminNewCardPage() {
   // Mutation for creating card
   const createCardMutation = useMutation({
     mutationFn: async (data: CardFormValues) => {
-      const response = await apiRequest("POST", "/api/cards", {
+      const response = await apiRequest("/api/cards", "POST", {
         employeeId: employeeId,
         templateId: parseInt(data.templateId),
         customization: data.customization
