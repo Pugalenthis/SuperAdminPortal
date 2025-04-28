@@ -96,7 +96,16 @@ export default function AdminCardEditPage() {
     refetch: refetchCard
   } = useQuery({
     queryKey: ['/api/cards', cardId],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryFn: async () => {
+      try {
+        const result = await getQueryFn({ on401: "throw" })();
+        console.log("Raw card data from API:", result);
+        return result;
+      } catch (error) {
+        console.error("Error fetching card:", error);
+        throw error;
+      }
+    },
     retry: false,
     enabled: !!user && user.userType === 'admin' && !!cardId,
     onSuccess: (data) => {
@@ -107,11 +116,14 @@ export default function AdminCardEditPage() {
       console.log("Full card data:", data);
       
       // Check if data exists and has a status property (even if it's empty)
-      if (data && 'status' in data) {
-        // Even if status is empty or undefined, we want to capture it
-        const status = data.status || 'inactive';
+      if (data) {
+        // Default to inactive if status is not present
+        const status = data.status === 'active' ? 'active' : 'inactive';
         console.log("Setting cardStatus to:", status);
         setCardStatus(status);
+        
+        // Also update the form's status field directly
+        form.setValue('status', status);
       }
       
       if (data && templates.length > 0) {
@@ -168,12 +180,12 @@ export default function AdminCardEditPage() {
         ? card.templateId 
         : templates.length > 0 ? templates[0].id : 0;
       
-      // Get the actual card status from API data
-      // Default to inactive if status is not present or null
-      const status = 'status' in card ? (card.status || 'inactive') : 'inactive';
+      // Extract status directly - strict checking to ensure we accurately represent active status
+      // This is critical for the switch UI component to show the correct state
+      const status = card.status === 'active' ? 'active' : 'inactive';
       
       console.log("Setting form with template ID:", templateId, "from card:", card.templateId);
-      console.log("Card status from API (with default):", status);
+      console.log("Card status (normalized):", status, "Original status:", card.status);
       
       // Always update our state variable for card status
       console.log("Updating cardStatus state to:", status);
@@ -185,6 +197,9 @@ export default function AdminCardEditPage() {
         status,
         customization: card.customization || {},
       });
+      
+      // Also explicitly set the status field to ensure it's updated
+      form.setValue('status', status);
     }
   }, [card, templates, form]);
   
