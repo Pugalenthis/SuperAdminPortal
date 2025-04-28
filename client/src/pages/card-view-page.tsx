@@ -291,69 +291,129 @@ export default function CardViewPage() {
                   className="h-4 w-4 flex-shrink-0"
                   style={{ color: styles.accent }}
                 />
-                <span className="text-sm">www.companywebsite.com</span>
+                <span className="text-sm">{adminOrgName}</span>
               </div>
             </div>
             
             {/* QR Code - Right */}
-            <div className="col-span-2 flex items-center justify-center">
+            <div className="col-span-2 flex flex-col items-center justify-center space-y-2">
               <div 
                 className="p-2 bg-white rounded-md"
                 style={{ 
-                  border: `1px solid ${styles.accent}20`
+                  border: `1px solid ${styles.accent}20`,
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
                 }}
               >
                 <QrCode 
-                  className="h-20 w-20" 
-                  style={{ color: styles.accent }}
+                  className="h-24 w-24" 
+                  style={{ color: styles.textColor }}
                 />
               </div>
+              <span 
+                className="text-xs px-3 py-0.5 rounded-full text-center mt-1"
+                style={{ 
+                  backgroundColor: `${styles.accent}10`,
+                  color: styles.accent,
+                  fontWeight: 500
+                }}
+              >
+                www.companywebsite.com
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Company Card Section (Bottom Section - 1066px × 445px) */}
+        {/* Company Card Section (Bottom Section - matching aspect ratio) */}
         {companyCard ? (
           <div
-            className="w-full"
+            className="w-full relative"
             style={{
-              aspectRatio: '1066/445',
-              backgroundImage: `url(${companyCard.imagePath})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
+              aspectRatio: '1066/442',
+              backgroundColor: '#f8f8f8',
+              borderTop: '1px solid rgba(0,0,0,0.05)'
             }}
-          />
+          >
+            <div
+              className="absolute inset-0 bg-center bg-cover"
+              style={{
+                backgroundImage: `url(${companyCard.imagePath})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            />
+            {/* Add subtle gradient overlay for depth */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.02), rgba(0,0,0,0.06))',
+                zIndex: 1
+              }}
+            />
+            <div 
+              className="absolute bottom-0 left-0 right-0 h-12"
+              style={{
+                background: 'linear-gradient(to top, rgba(0,0,0,0.1), transparent)',
+                zIndex: 2
+              }}
+            />
+          </div>
         ) : (
           <div 
             className="w-full flex items-center justify-center"
             style={{
-              aspectRatio: '1066/445',
-              backgroundColor: '#f5f5f5',
-              color: '#888'
+              aspectRatio: '1066/442',
+              backgroundColor: '#f8f8f8',
+              borderTop: '1px solid rgba(0,0,0,0.05)'
             }}
           >
-            <div className="text-center">
-              <Building className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-medium">
-                Company branding area
+            <div className="text-center p-6">
+              <div 
+                className="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center"
+                style={{ 
+                  backgroundColor: `${styles.accent}10` 
+                }}
+              >
+                <Building 
+                  className="w-8 h-8 opacity-60" 
+                  style={{ color: styles.accent }}
+                />
+              </div>
+              <p className="text-sm text-gray-500 font-medium">
+                Company branding section
+              </p>
+              <p className="text-xs text-gray-400 mt-1 max-w-xs">
+                Upload your company card in Organization Settings
               </p>
             </div>
           </div>
         )}
         
-        {/* Actions */}
+        {/* Actions - Enhanced premium style */}
         <div 
-          className="flex justify-center gap-4 p-4 border-t bg-white"
-          style={{ borderColor: 'rgba(0,0,0,0.05)' }}
+          className="flex justify-center gap-4 p-5 border-t"
+          style={{ 
+            borderColor: 'rgba(0,0,0,0.05)',
+            background: 'linear-gradient(to bottom, #fff, #fafafa)'
+          }}
         >
           <Button 
-            className="rounded-md"
+            className="rounded-md shadow-sm relative overflow-hidden transition-all duration-300"
             style={{ 
               backgroundColor: styles.accent,
               color: 'white',
+              padding: '8px 16px',
+              border: 'none'
             }}
             size="sm" 
             onClick={handleShare}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+            }}
           >
             <Share2 className="h-4 w-4 mr-2" />
             Share
@@ -361,15 +421,26 @@ export default function CardViewPage() {
           
           {employee.email && (
             <Button 
-              className="rounded-md"
+              className="rounded-md shadow-sm transition-all duration-300"
               style={{ 
                 backgroundColor: 'white',
                 color: styles.accent,
+                padding: '8px 16px',
                 borderColor: `${styles.accent}40`
               }}
               variant="outline" 
               size="sm" 
               asChild
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = styles.accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = `${styles.accent}40`;
+              }}
             >
               <a href={`mailto:${employee.email}`}>
                 <Mail className="h-4 w-4 mr-2" />
@@ -380,15 +451,26 @@ export default function CardViewPage() {
           
           {employee.phone && (
             <Button
-              className="rounded-md" 
+              className="rounded-md shadow-sm transition-all duration-300"
               style={{ 
                 backgroundColor: 'white',
                 color: styles.accent,
+                padding: '8px 16px',
                 borderColor: `${styles.accent}40`
               }}
               variant="outline" 
               size="sm" 
               asChild
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = styles.accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = `${styles.accent}40`;
+              }}
             >
               <a href={`tel:${employee.phone}`}>
                 <Phone className="h-4 w-4 mr-2" />
