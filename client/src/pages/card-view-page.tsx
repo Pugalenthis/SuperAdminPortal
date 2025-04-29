@@ -227,14 +227,14 @@ export default function CardViewPage() {
       >
         {/* Company Logo Header Above First Section */}
         {companyCard?.logoPath ? (
-          <div className="px-5 py-3 flex justify-between items-center" 
+          <div className="px-5 py-4 flex justify-between items-center" 
             style={{
               borderBottom: `1px solid ${styles.accent}10`,
               background: `linear-gradient(to right, #fff, ${styles.secondaryColor}15)`
             }}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 flex-shrink-0 rounded overflow-hidden" 
+              <div className="w-16 h-16 flex-shrink-0 rounded overflow-hidden" 
                 style={{
                   boxShadow: `0 3px 8px ${styles.accent}20`,
                   border: `1px solid ${styles.accent}30`,
@@ -264,7 +264,7 @@ export default function CardViewPage() {
             </span>
           </div>
         ) : (
-          <div className="px-5 py-3 flex justify-between items-center" 
+          <div className="px-5 py-4 flex justify-between items-center" 
             style={{
               borderBottom: `1px solid ${styles.accent}10`,
               background: `linear-gradient(to right, #fff, ${styles.secondaryColor}15)`
