@@ -300,7 +300,7 @@ export default function CardViewPage() {
           }}
         >
           
-          <Separator className="mb-4" style={{ backgroundColor: `${styles.accent}20` }} />
+          {/* Divider removed as requested */}
           
           {/* Compact layout with name/title/QR side-by-side */}
           <div className="grid grid-cols-6 gap-2 mb-4">
