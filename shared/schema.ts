@@ -66,6 +66,9 @@ export const companyCards = pgTable("company_cards", {
   width: integer("width").notNull(),
   height: integer("height").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  logoPath: text("logo_path"),
+  primaryColor: text("primary_color"),
+  secondaryColor: text("secondary_color"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -197,5 +200,8 @@ export const companyCardFormSchema = z.object({
   width: z.number().default(1066),
   height: z.number().default(445),
   isActive: z.boolean().default(true),
+  logoPath: z.string().optional(),
+  primaryColor: z.string().optional(),
+  secondaryColor: z.string().optional(),
 });
 export type CompanyCardForm = z.infer<typeof companyCardFormSchema>;
