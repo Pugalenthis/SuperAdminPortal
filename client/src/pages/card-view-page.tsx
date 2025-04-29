@@ -238,12 +238,28 @@ export default function CardViewPage() {
         >
           {/* Company Logo/Name */}
           <div className="mb-3 flex items-center justify-between">
-            <h2 
-              className="text-base uppercase tracking-wider font-semibold"
-              style={{ color: styles.accent }}
-            >
-              {adminOrgName}
-            </h2>
+            <div className="flex items-center gap-2">
+              {companyCard?.logoPath ? (
+                <div 
+                  className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border"
+                  style={{ 
+                    borderColor: `${styles.accent}30`,
+                  }}
+                >
+                  <img 
+                    src={companyCard.logoPath} 
+                    alt={adminOrgName}
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+              ) : null}
+              <h2 
+                className="text-base uppercase tracking-wider font-semibold"
+                style={{ color: styles.accent }}
+              >
+                {adminOrgName}
+              </h2>
+            </div>
             
             <span 
               className="text-xs px-2.5 py-0.5 rounded-full"
@@ -341,7 +357,7 @@ export default function CardViewPage() {
                   fontSize: '0.65rem'
                 }}
               >
-                www.companywebsite.com
+                {companyCard?.websiteUrl || 'company website'}
               </span>
               <span 
                 className="text-center"
