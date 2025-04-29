@@ -411,15 +411,30 @@ export default function CardViewPage() {
                 </div>
               )}
               
-              <span 
-                className="text-center"
-                style={{ 
-                  color: `${styles.textColor}80`,
-                  fontSize: '0.65rem'
-                }}
-              >
-                Scan to connect
-              </span>
+              <div className="flex flex-col items-center">
+                <span 
+                  className="text-center"
+                  style={{ 
+                    color: `${styles.textColor}80`,
+                    fontSize: '0.65rem'
+                  }}
+                >
+                  Scan to connect
+                </span>
+                
+                {companyCard?.websiteUrl && (
+                  <span 
+                    className="text-center mt-1.5"
+                    style={{ 
+                      color: styles.accent,
+                      fontSize: '0.75rem',
+                      fontWeight: 500
+                    }}
+                  >
+                    {companyCard.websiteUrl}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -475,36 +490,7 @@ export default function CardViewPage() {
               }}
             />
             
-            {/* Full website URL at bottom */}
-            {companyCard?.websiteUrl && (
-              <div 
-                className="absolute bottom-3 left-0 right-0 flex justify-center items-center z-10"
-              >
-                <a 
-                  href={companyCard.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer" 
-                  className="px-4 py-1.5 rounded-full flex items-center gap-2"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    backdropFilter: 'blur(5px)'
-                  }}
-                >
-                  <Globe className="h-3.5 w-3.5" style={{ color: styles.accent }} />
-                  <span 
-                    style={{ 
-                      color: styles.textColor, 
-                      fontSize: '0.8rem',
-                      fontWeight: 500
-                    }}
-                  >
-                    {companyCard.websiteUrl}
-                  </span>
-                </a>
-              </div>
-            )}
+
           </div>
         ) : (
           <div 
