@@ -812,12 +812,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a QR code for the business card URL
       let qrCodeUrl = null;
       try {
-        // Get the company's accent color if available, or use default
-        const activeCompanyCard = await storage.getActiveCompanyCardByAdminId(adminId);
-        const accentColor = (activeCompanyCard && activeCompanyCard.primaryColor) || '#0066cc';
-        
-        // Generate the QR code
-        qrCodeUrl = await generateQRCode(uniqueUrl, accentColor);
+        // QR codes are always generated in black for better visibility, regardless of brand color
+        // Generate the QR code (accent color parameter is ignored in the function)
+        qrCodeUrl = await generateQRCode(uniqueUrl, '#000000');
       } catch (qrError) {
         console.error("Error generating QR code:", qrError);
         // Continue even if QR code generation fails
@@ -890,15 +887,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!qrCodeUrl || companyCardId !== card.companyCardId) {
         try {
-          // Get the company card to use its primary color
-          const companyCardToUse = companyCardId 
-            ? await storage.getCompanyCard(companyCardId)
-            : await storage.getActiveCompanyCardByAdminId(adminId);
-            
-          const accentColor = (companyCardToUse && companyCardToUse.primaryColor) || '#0066cc';
-          
-          // Generate or regenerate QR code
-          qrCodeUrl = await generateQRCode(card.uniqueUrl, accentColor);
+          // QR codes are always generated in black for better visibility
+          // Generate or regenerate QR code (accent color parameter is ignored in the function)
+          qrCodeUrl = await generateQRCode(card.uniqueUrl, '#000000');
         } catch (qrError) {
           console.error("Error regenerating QR code during update:", qrError);
           // Continue with existing QR code if generation fails
