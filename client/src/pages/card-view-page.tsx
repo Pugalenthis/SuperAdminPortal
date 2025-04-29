@@ -206,7 +206,7 @@ export default function CardViewPage() {
       >
         {/* Employee Section (Top Section - 1066px × 442px) */}
         <div 
-          className="w-full px-6 pt-8 pb-5"
+          className="w-full px-5 pt-5 pb-4"
           style={{ 
             aspectRatio: '1066/442', // Exact dimensions as specified
             background: styles.background, 
@@ -216,7 +216,7 @@ export default function CardViewPage() {
           }}
         >
           {/* Company Logo/Name */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between">
             <h2 
               className="text-base uppercase tracking-wider font-semibold"
               style={{ color: styles.accent }}
@@ -225,7 +225,7 @@ export default function CardViewPage() {
             </h2>
             
             <span 
-              className="text-xs px-3 py-0.5 rounded-full"
+              className="text-xs px-2.5 py-0.5 rounded-full"
               style={{ 
                 backgroundColor: `${styles.accent}10`,
                 color: styles.accent
@@ -235,112 +235,112 @@ export default function CardViewPage() {
             </span>
           </div>
           
-          <Separator className="mb-6" style={{ backgroundColor: `${styles.accent}20` }} />
+          <Separator className="mb-4" style={{ backgroundColor: `${styles.accent}20` }} />
           
-          {/* Two columns for Name/Title + QR Code */}
-          <div className="grid grid-cols-5 gap-4 mb-6">
+          {/* Compact layout with name/title/QR side-by-side */}
+          <div className="grid grid-cols-6 gap-2 mb-4">
             {/* Name & Title - Left */}
-            <div className="col-span-3">
+            <div className="col-span-4">
               <h1 
-                className="text-3xl font-bold mb-2"
+                className="text-2xl font-bold mb-1"
                 style={{ color: styles.textColor }}
               >
                 {employee.firstName} {employee.lastName}
               </h1>
               <p 
-                className="text-base font-medium"
+                className="text-sm font-medium mb-3"
                 style={{ color: styles.accent }}
               >
                 {employee.title}
               </p>
+              
+              {/* Contact Info below name - more compact */}
+              <div className="grid grid-cols-1 gap-1.5">
+                {employee.email && (
+                  <div className="flex items-center gap-2">
+                    <Mail 
+                      className="h-3.5 w-3.5 flex-shrink-0"
+                      style={{ color: styles.accent }} 
+                    />
+                    <span className="text-xs truncate">{employee.email}</span>
+                  </div>
+                )}
+                
+                {employee.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone 
+                      className="h-3.5 w-3.5 flex-shrink-0"
+                      style={{ color: styles.accent }} 
+                    />
+                    <span className="text-xs">{employee.phone}</span>
+                  </div>
+                )}
+
+                {employee.department && (
+                  <div className="flex items-center gap-2">
+                    <MapPin 
+                      className="h-3.5 w-3.5 flex-shrink-0"
+                      style={{ color: styles.accent }} 
+                    />
+                    <span className="text-xs">{employee.department}</span>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2">
+                  <Building
+                    className="h-3.5 w-3.5 flex-shrink-0"
+                    style={{ color: styles.accent }}
+                  />
+                  <span className="text-xs">{adminOrgName}</span>
+                </div>
+              </div>
             </div>
             
             {/* QR Code - Right */}
-            <div className="col-span-2 flex flex-col items-center justify-center">
+            <div className="col-span-2 flex flex-col items-center justify-start">
               <div 
-                className="p-2 bg-white rounded-lg mb-2.5"
+                className="p-1.5 bg-white rounded-md mb-1.5"
                 style={{ 
                   border: `1px solid ${styles.accent}30`,
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.08)'
+                  boxShadow: '0 8px 15px rgba(0,0,0,0.08)'
                 }}
               >
                 <QrCode 
-                  className="h-20 w-20" 
+                  className="h-16 w-16" 
                   style={{ color: styles.textColor }}
                 />
               </div>
-              <div className="flex flex-col items-center gap-1">
-                <span 
-                  className="text-xs px-3 py-1 rounded-md text-center"
-                  style={{ 
-                    backgroundColor: `${styles.accent}15`,
-                    color: styles.accent,
-                    fontWeight: 500,
-                    borderLeft: `3px solid ${styles.accent}`
-                  }}
-                >
-                  www.companywebsite.com
-                </span>
-                <span 
-                  className="text-xs text-center"
-                  style={{ 
-                    color: `${styles.textColor}80`,
-                  }}
-                >
-                  Scan to connect
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Contact Information */}
-          <div className="grid grid-cols-1 gap-2.5">
-            {employee.email && (
-              <div className="flex items-center gap-3">
-                <Mail 
-                  className="h-4 w-4 flex-shrink-0"
-                  style={{ color: styles.accent }} 
-                />
-                <span className="text-sm truncate">{employee.email}</span>
-              </div>
-            )}
-            
-            {employee.phone && (
-              <div className="flex items-center gap-3">
-                <Phone 
-                  className="h-4 w-4 flex-shrink-0"
-                  style={{ color: styles.accent }} 
-                />
-                <span className="text-sm">{employee.phone}</span>
-              </div>
-            )}
-
-            {employee.department && (
-              <div className="flex items-center gap-3">
-                <MapPin 
-                  className="h-4 w-4 flex-shrink-0"
-                  style={{ color: styles.accent }} 
-                />
-                <span className="text-sm">{employee.department}</span>
-              </div>
-            )}
-            
-            <div className="flex items-center gap-3">
-              <Building
-                className="h-4 w-4 flex-shrink-0"
-                style={{ color: styles.accent }}
-              />
-              <span className="text-sm">{adminOrgName}</span>
+              <span 
+                className="text-xs px-2 py-0.5 rounded text-center text-xs mb-0.5"
+                style={{ 
+                  backgroundColor: `${styles.accent}15`,
+                  color: styles.accent,
+                  fontWeight: 500,
+                  borderLeft: `2px solid ${styles.accent}`,
+                  fontSize: '0.65rem'
+                }}
+              >
+                www.companywebsite.com
+              </span>
+              <span 
+                className="text-center"
+                style={{ 
+                  color: `${styles.textColor}80`,
+                  fontSize: '0.65rem'
+                }}
+              >
+                Scan to connect
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Company Card Section (Bottom Section - matching aspect ratio with section 1) */}
+        {/* Company Card Section (Bottom Section - more compact) */}
         {companyCard ? (
           <div
             className="w-full relative"
             style={{
-              aspectRatio: '1066/445', // Exactly match the specified dimensions (1066x445)
+              aspectRatio: '1066/390', // More compact height
               backgroundColor: '#f8f8f8',
               borderTop: '1px solid rgba(0,0,0,0.05)'
             }}
@@ -363,7 +363,7 @@ export default function CardViewPage() {
               }}
             />
             <div 
-              className="absolute bottom-0 left-0 right-0 h-16"
+              className="absolute bottom-0 left-0 right-0 h-12"
               style={{
                 background: 'linear-gradient(to top, rgba(0,0,0,0.12), transparent)',
                 zIndex: 2
@@ -371,7 +371,7 @@ export default function CardViewPage() {
             />
             {/* Add subtle top shadow for depth between sections */}
             <div 
-              className="absolute top-0 left-0 right-0 h-2"
+              className="absolute top-0 left-0 right-0 h-1"
               style={{
                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.04), transparent)',
                 zIndex: 2
@@ -382,38 +382,38 @@ export default function CardViewPage() {
           <div 
             className="w-full flex items-center justify-center"
             style={{
-              aspectRatio: '1066/445', // Exactly match the specified dimensions (1066x445)
+              aspectRatio: '1066/390', // More compact height
               backgroundColor: '#f8f9fa',
               borderTop: '1px solid rgba(0,0,0,0.05)',
               boxShadow: 'inset 0 1px 6px rgba(0,0,0,0.02)'
             }}
           >
-            <div className="text-center p-6">
+            <div className="text-center p-4">
               <div 
-                className="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center"
+                className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center"
                 style={{ 
                   backgroundColor: `${styles.accent}10`,
                   boxShadow: '0 3px 12px rgba(0,0,0,0.06)'
                 }}
               >
                 <Building 
-                  className="w-8 h-8 opacity-70" 
+                  className="w-6 h-6 opacity-70" 
                   style={{ color: styles.accent }}
                 />
               </div>
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-xs text-gray-600 font-medium">
                 Company branding section
               </p>
-              <p className="text-xs text-gray-400 mt-1 max-w-xs">
+              <p className="text-xs text-gray-400 mt-0.5 max-w-xs" style={{ fontSize: '0.65rem' }}>
                 Upload your company card in Organization Settings
               </p>
             </div>
           </div>
         )}
         
-        {/* Actions - Enhanced premium style */}
+        {/* Actions - Compact style */}
         <div 
-          className="flex justify-center gap-4 p-5 border-t"
+          className="flex justify-center gap-3 py-3 px-4 border-t"
           style={{ 
             borderColor: 'rgba(0,0,0,0.05)',
             background: 'linear-gradient(to bottom, #fff, #fafafa)'
@@ -424,8 +424,9 @@ export default function CardViewPage() {
             style={{ 
               backgroundColor: styles.accent,
               color: 'white',
-              padding: '8px 16px',
-              border: 'none'
+              padding: '6px 12px',
+              border: 'none',
+              fontSize: '0.8rem'
             }}
             size="sm" 
             onClick={handleShare}
@@ -438,7 +439,7 @@ export default function CardViewPage() {
               e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
             }}
           >
-            <Share2 className="h-4 w-4 mr-2" />
+            <Share2 className="h-3.5 w-3.5 mr-1.5" />
             Share
           </Button>
           
@@ -448,15 +449,16 @@ export default function CardViewPage() {
               style={{ 
                 backgroundColor: 'white',
                 color: styles.accent,
-                padding: '8px 16px',
-                borderColor: `${styles.accent}40`
+                padding: '6px 12px',
+                borderColor: `${styles.accent}40`,
+                fontSize: '0.8rem'
               }}
               variant="outline" 
               size="sm" 
               asChild
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
                 e.currentTarget.style.borderColor = styles.accent;
               }}
               onMouseLeave={(e) => {
@@ -466,7 +468,7 @@ export default function CardViewPage() {
               }}
             >
               <a href={`mailto:${employee.email}`}>
-                <Mail className="h-4 w-4 mr-2" />
+                <Mail className="h-3.5 w-3.5 mr-1.5" />
                 Email
               </a>
             </Button>
@@ -478,15 +480,16 @@ export default function CardViewPage() {
               style={{ 
                 backgroundColor: 'white',
                 color: styles.accent,
-                padding: '8px 16px',
-                borderColor: `${styles.accent}40`
+                padding: '6px 12px',
+                borderColor: `${styles.accent}40`,
+                fontSize: '0.8rem'
               }}
               variant="outline" 
               size="sm" 
               asChild
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
                 e.currentTarget.style.borderColor = styles.accent;
               }}
               onMouseLeave={(e) => {
@@ -496,7 +499,7 @@ export default function CardViewPage() {
               }}
             >
               <a href={`tel:${employee.phone}`}>
-                <Phone className="h-4 w-4 mr-2" />
+                <Phone className="h-3.5 w-3.5 mr-1.5" />
                 Call
               </a>
             </Button>
