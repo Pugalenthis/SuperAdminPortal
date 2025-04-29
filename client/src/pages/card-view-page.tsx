@@ -335,12 +335,12 @@ export default function CardViewPage() {
           </div>
         </div>
 
-        {/* Company Card Section (Bottom Section - more compact) */}
+        {/* Company Card Section (Bottom Section - balanced height) */}
         {companyCard ? (
           <div
             className="w-full relative"
             style={{
-              aspectRatio: '1066/390', // More compact height
+              aspectRatio: '1066/420', // Larger height for company section
               backgroundColor: '#f8f8f8',
               borderTop: '1px solid rgba(0,0,0,0.05)'
             }}
@@ -363,7 +363,7 @@ export default function CardViewPage() {
               }}
             />
             <div 
-              className="absolute bottom-0 left-0 right-0 h-12"
+              className="absolute bottom-0 left-0 right-0 h-14"
               style={{
                 background: 'linear-gradient(to top, rgba(0,0,0,0.12), transparent)',
                 zIndex: 2
@@ -382,29 +382,29 @@ export default function CardViewPage() {
           <div 
             className="w-full flex items-center justify-center"
             style={{
-              aspectRatio: '1066/390', // More compact height
+              aspectRatio: '1066/420', // Larger height for company section
               backgroundColor: '#f8f9fa',
               borderTop: '1px solid rgba(0,0,0,0.05)',
               boxShadow: 'inset 0 1px 6px rgba(0,0,0,0.02)'
             }}
           >
-            <div className="text-center p-4">
+            <div className="text-center p-5">
               <div 
-                className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center"
+                className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center"
                 style={{ 
                   backgroundColor: `${styles.accent}10`,
                   boxShadow: '0 3px 12px rgba(0,0,0,0.06)'
                 }}
               >
                 <Building 
-                  className="w-6 h-6 opacity-70" 
+                  className="w-7 h-7 opacity-70" 
                   style={{ color: styles.accent }}
                 />
               </div>
-              <p className="text-xs text-gray-600 font-medium">
+              <p className="text-sm text-gray-600 font-medium">
                 Company branding section
               </p>
-              <p className="text-xs text-gray-400 mt-0.5 max-w-xs" style={{ fontSize: '0.65rem' }}>
+              <p className="text-xs text-gray-400 mt-1 max-w-xs">
                 Upload your company card in Organization Settings
               </p>
             </div>
