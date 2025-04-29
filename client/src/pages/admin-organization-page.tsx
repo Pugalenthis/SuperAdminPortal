@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Upload, Trash2, Building2 } from "lucide-react";
+import { ArrowLeft, Upload, Trash2, Building2, Image, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,13 +31,27 @@ export default function AdminOrganizationPage() {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   
+  // New states for company logo and branding colors
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [primaryColor, setPrimaryColor] = useState<string>("#0066cc");
+  const [secondaryColor, setSecondaryColor] = useState<string>("#f5f5f5");
+  const [isSavingBranding, setIsSavingBranding] = useState(false);
+  
   // Navigation function
   const navigate = (path: string) => {
     setLocation(path);
   };
   
   // Fetch user data
-  const { data: userData } = useQuery({
+  interface UserData {
+    id: number;
+    email: string;
+    orgName: string;
+    userType: string;
+  }
+  
+  const { data: userData } = useQuery<UserData>({
     queryKey: ['/api/user'],
     queryFn: getQueryFn({ on401: "throw" }),
     retry: false,
@@ -73,6 +88,29 @@ export default function AdminOrganizationPage() {
     }
   });
   
+  // Update company branding mutation
+  const updateBrandingMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await apiRequest('/api/company-branding', 'POST', formData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Branding updated",
+        description: "Your company branding elements have been updated successfully",
+      });
+      refetchCompanyCard();
+      setIsSavingBranding(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update company branding. Please try again.",
+        variant: "destructive"
+      });
+      setIsSavingBranding(false);
+    }
+  });
+  
   // Delete company card mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -96,7 +134,7 @@ export default function AdminOrganizationPage() {
     }
   });
   
-  // Handle file selection
+  // Handle file selection for company card
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -120,6 +158,31 @@ export default function AdminOrganizationPage() {
       reader.readAsDataURL(file);
     }
   };
+
+  // Handle logo file selection
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.includes('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setLogoFile(file);
+      
+      // Create a preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   
   // Handle upload
   const handleUpload = async () => {
@@ -136,6 +199,22 @@ export default function AdminOrganizationPage() {
     formData.append('image', uploadFile);
     
     await uploadMutation.mutateAsync(formData);
+  };
+  
+  // Handle save branding
+  const handleSaveBranding = async () => {
+    setIsSavingBranding(true);
+    
+    const formData = new FormData();
+    
+    if (logoFile) {
+      formData.append('logo', logoFile);
+    }
+    
+    formData.append('primaryColor', primaryColor);
+    formData.append('secondaryColor', secondaryColor);
+    
+    await updateBrandingMutation.mutateAsync(formData);
   };
   
   // Handle delete
@@ -305,6 +384,161 @@ export default function AdminOrganizationPage() {
               </CardFooter>
             </Card>
           </div>
+        </div>
+        
+        {/* Company Branding Section */}
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-primary" />
+                <CardTitle>Company Branding</CardTitle>
+              </div>
+              <CardDescription>
+                Customize your company's brand identity for business cards
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="logo" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="logo" className="flex items-center gap-1">
+                    <Image className="h-4 w-4" />
+                    Logo
+                  </TabsTrigger>
+                  <TabsTrigger value="colors" className="flex items-center gap-1">
+                    <Palette className="h-4 w-4" />
+                    Colors
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="logo" className="space-y-4">
+                  <div>
+                    <Label htmlFor="company-logo-upload" className="block mb-2">
+                      Company Logo (400px × 900px)
+                    </Label>
+                    <Input
+                      id="company-logo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Recommended dimensions: 400px × 900px
+                    </p>
+                  </div>
+                  
+                  {logoPreview && (
+                    <div className="border rounded-md overflow-hidden p-4 flex justify-center">
+                      <div className="max-w-md">
+                        <img
+                          src={logoPreview}
+                          alt="Company logo preview"
+                          className="max-w-full h-auto"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {companyCards && companyCards[0]?.logoPath && !logoPreview && (
+                    <div className="border rounded-md overflow-hidden p-4 flex justify-center">
+                      <div className="max-w-md">
+                        <img
+                          src={companyCards[0].logoPath}
+                          alt="Current company logo"
+                          className="max-w-full h-auto"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="colors" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="primary-color" className="block mb-2">
+                        Primary Brand Color
+                      </Label>
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-10 h-10 rounded-md border" 
+                          style={{ backgroundColor: primaryColor }}
+                        />
+                        <Input
+                          id="primary-color"
+                          type="color"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="w-16 h-10"
+                        />
+                        <Input
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Used for primary elements and accents
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="secondary-color" className="block mb-2">
+                        Secondary Brand Color
+                      </Label>
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-10 h-10 rounded-md border" 
+                          style={{ backgroundColor: secondaryColor }}
+                        />
+                        <Input
+                          id="secondary-color"
+                          type="color"
+                          value={secondaryColor}
+                          onChange={(e) => setSecondaryColor(e.target.value)}
+                          className="w-16 h-10"
+                        />
+                        <Input
+                          value={secondaryColor}
+                          onChange={(e) => setSecondaryColor(e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Used for backgrounds and secondary elements
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 p-4 border rounded-md">
+                    <h3 className="text-sm font-medium mb-2">Color Preview</h3>
+                    <div className="flex flex-col gap-2">
+                      <div 
+                        className="h-16 rounded-md flex items-center justify-center font-medium" 
+                        style={{ backgroundColor: primaryColor, color: secondaryColor }}
+                      >
+                        Primary Background with Secondary Text
+                      </div>
+                      <div 
+                        className="h-16 rounded-md flex items-center justify-center font-medium" 
+                        style={{ backgroundColor: secondaryColor, color: primaryColor }}
+                      >
+                        Secondary Background with Primary Text
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button
+                onClick={handleSaveBranding}
+                disabled={updateBrandingMutation.isPending || isSavingBranding}
+              >
+                {updateBrandingMutation.isPending || isSavingBranding ? "Saving..." : "Save Branding"}
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
         
         {/* Company Information */}
