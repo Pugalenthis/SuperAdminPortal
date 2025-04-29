@@ -69,6 +69,8 @@ export const companyCards = pgTable("company_cards", {
   logoPath: text("logo_path"),
   primaryColor: text("primary_color"),
   secondaryColor: text("secondary_color"),
+  websiteUrl: text("website_url"),
+  enquiriesEmail: text("enquiries_email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -203,5 +205,7 @@ export const companyCardFormSchema = z.object({
   logoPath: z.string().optional(),
   primaryColor: z.string().optional(),
   secondaryColor: z.string().optional(),
+  websiteUrl: z.string().url("Please enter a valid URL").optional(),
+  enquiriesEmail: z.string().email("Please enter a valid email").optional(),
 });
 export type CompanyCardForm = z.infer<typeof companyCardFormSchema>;
