@@ -237,11 +237,6 @@ export default function CardViewPage() {
             >
               {employee?.adminId && data?.employee?.adminId === 4 ? "TRDFIN" : data?.employee?.department || "BUSINESS CARD"}
             </p>
-            {companyCard?.websiteUrl && (
-              <p className="text-xs" style={{ color: `${styles.textColor}90` }}>
-                {new URL(companyCard.websiteUrl).hostname}
-              </p>
-            )}
           </div>
           
           <span 
@@ -385,31 +380,7 @@ export default function CardViewPage() {
                 )}
               </div>
               
-              {/* Website URL directly below QR code */}
-              {companyCard?.websiteUrl && (
-                <div 
-                  className="flex items-center justify-center gap-1.5 mb-1 px-2.5 py-1 rounded-full"
-                  style={{ 
-                    background: `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`,
-                    boxShadow: `0 2px 4px ${styles.secondaryColor}15`
-                  }}
-                >
-                  <Globe 
-                    className="h-3 w-3 flex-shrink-0"
-                    style={{ color: styles.textColor }} 
-                  />
-                  <span 
-                    className="text-center"
-                    style={{ 
-                      color: styles.textColor,
-                      fontSize: '0.75rem',
-                      fontWeight: 500
-                    }}
-                  >
-                    {new URL(companyCard.websiteUrl).hostname}
-                  </span>
-                </div>
-              )}
+              {/* Website URL removed as requested */}
               
               <span 
                 className="text-center"
@@ -475,36 +446,7 @@ export default function CardViewPage() {
               }}
             />
             
-            {/* Full website URL at bottom */}
-            {companyCard?.websiteUrl && (
-              <div 
-                className="absolute bottom-3 left-0 right-0 flex justify-center items-center z-10"
-              >
-                <a 
-                  href={companyCard.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer" 
-                  className="px-4 py-1.5 rounded-full flex items-center gap-2"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    backdropFilter: 'blur(5px)'
-                  }}
-                >
-                  <Globe className="h-3.5 w-3.5" style={{ color: styles.accent }} />
-                  <span 
-                    style={{ 
-                      color: styles.textColor, 
-                      fontSize: '0.8rem',
-                      fontWeight: 500
-                    }}
-                  >
-                    {companyCard.websiteUrl}
-                  </span>
-                </a>
-              </div>
-            )}
+            {/* Website URL removed as requested */}
           </div>
         ) : (
           <div 
