@@ -44,7 +44,10 @@ async function getImageDimensions(imageBuffer: Buffer) {
 async function generateQRCode(uniqueUrl: string, accentColor: string = '#0066cc') {
   try {
     // Create a full URL from the unique URL using the request host
-    const fullUrl = `${process.env.HOST || 'https://' + req.get('host')}/card/${uniqueUrl}`;
+    const host = process.env.HOST || 'https://businesscards.replit.app';
+    const fullUrl = `${host}/card/${uniqueUrl}`;
+    
+    console.log("Generating QR code for URL:", fullUrl);
     
     // Options for QR code generation
     const options = {
@@ -60,6 +63,7 @@ async function generateQRCode(uniqueUrl: string, accentColor: string = '#0066cc'
     
     // Generate QR code as data URL
     const qrDataUrl = await promisify(QRCode.toDataURL)(fullUrl, options);
+    console.log("QR code generation successful, data URL length:", qrDataUrl ? qrDataUrl.length : 0);
     return qrDataUrl;
   } catch (error) {
     console.error("Error generating QR code:", error);
@@ -812,9 +816,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a QR code for the business card URL
       let qrCodeUrl = null;
       try {
+        console.log("Generating QR code for new card with URL:", uniqueUrl);
         // QR codes are always generated in black for better visibility, regardless of brand color
         // Generate the QR code (accent color parameter is ignored in the function)
         qrCodeUrl = await generateQRCode(uniqueUrl, '#000000');
+        console.log("QR code generation successful:", qrCodeUrl ? "QR code generated" : "Failed to generate QR code");
       } catch (qrError) {
         console.error("Error generating QR code:", qrError);
         // Continue even if QR code generation fails
