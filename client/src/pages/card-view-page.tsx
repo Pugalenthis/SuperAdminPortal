@@ -423,7 +423,7 @@ export default function CardViewPage() {
             className="w-full relative"
             style={{
               aspectRatio: '1066/442', // Exactly matching first section
-              backgroundColor: styles.secondaryColor || '#f8f8f8',
+              backgroundColor: '#f8f8f8',
               borderTop: `2px solid ${styles.accent}20`
             }}
           >
@@ -438,11 +438,11 @@ export default function CardViewPage() {
               }}
             />
             
-            {/* Color overlay using the secondary brand color */}
+            {/* Simple overlay */}
             <div 
               className="absolute inset-0"
               style={{
-                background: `linear-gradient(140deg, ${styles.secondaryColor}10 0%, ${styles.secondaryColor}30 50%, ${styles.secondaryColor}20 100%)`,
+                background: 'rgba(255, 255, 255, 0.05)',
                 mixBlendMode: 'overlay',
                 zIndex: 1
               }}
@@ -454,25 +454,7 @@ export default function CardViewPage() {
             <div 
               className="absolute bottom-0 left-0 right-0 h-14"
               style={{
-                background: `linear-gradient(to top, ${styles.secondaryColor}50, transparent)`,
-                zIndex: 3
-              }}
-            />
-            
-            {/* Left edge accent using secondary color */}
-            <div 
-              className="absolute top-0 left-0 bottom-0 w-2"
-              style={{
-                background: `linear-gradient(to right, ${styles.secondaryColor}70, transparent)`,
-                zIndex: 3
-              }}
-            />
-            
-            {/* Right edge accent using secondary color */}
-            <div 
-              className="absolute top-0 right-0 bottom-0 w-2"
-              style={{
-                background: `linear-gradient(to left, ${styles.secondaryColor}70, transparent)`,
+                background: `linear-gradient(to top, rgba(0,0,0,0.05), transparent)`,
                 zIndex: 3
               }}
             />
@@ -492,35 +474,17 @@ export default function CardViewPage() {
             style={{
               aspectRatio: '1066/442', // Exactly matching first section
               backgroundColor: '#f8f9fa',
-              borderTop: `2px solid ${styles.secondaryColor}30`,
+              borderTop: `2px solid ${styles.accent}20`,
               boxShadow: 'inset 0 1px 6px rgba(0,0,0,0.02)',
               overflow: 'hidden'
             }}
           >
-            {/* Add decorative diagonal lines with secondary color */}
+            {/* Simple background pattern */}
             <div 
-              className="absolute inset-0 opacity-10"
+              className="absolute inset-0 opacity-5"
               style={{ 
-                backgroundImage: `repeating-linear-gradient(135deg, ${styles.secondaryColor}, ${styles.secondaryColor} 10px, transparent 10px, transparent 40px)`,
+                backgroundImage: `repeating-linear-gradient(135deg, #999, #999 10px, transparent 10px, transparent 40px)`,
                 zIndex: 1
-              }}
-            />
-            
-            {/* Left edge accent using secondary color */}
-            <div 
-              className="absolute top-0 left-0 bottom-0 w-2"
-              style={{
-                background: `linear-gradient(to right, ${styles.secondaryColor}40, transparent)`,
-                zIndex: 2
-              }}
-            />
-            
-            {/* Right edge accent using secondary color */}
-            <div 
-              className="absolute top-0 right-0 bottom-0 w-2"
-              style={{
-                background: `linear-gradient(to left, ${styles.secondaryColor}40, transparent)`,
-                zIndex: 2
               }}
             />
             
@@ -528,24 +492,21 @@ export default function CardViewPage() {
               <div 
                 className="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center"
                 style={{ 
-                  background: `linear-gradient(135deg, ${styles.secondaryColor}20, ${styles.secondaryColor}50)`,
-                  boxShadow: `0 3px 12px ${styles.secondaryColor}30`
+                  background: `linear-gradient(135deg, ${styles.accent}10, ${styles.accent}30)`,
+                  boxShadow: `0 3px 12px ${styles.accent}20`
                 }}
               >
                 <Building 
                   className="w-8 h-8 opacity-70" 
-                  style={{ color: styles.textColor }}
+                  style={{ color: styles.accent }}
                 />
               </div>
-              <p className="text-sm font-medium" style={{ color: styles.textColor }}>
+              <p className="text-sm font-medium" style={{ color: styles.accent }}>
                 Company branding section
               </p>
               <p 
-                className="text-xs mt-1 max-w-xs mx-auto px-3 py-1 rounded-full"
-                style={{ 
-                  background: `${styles.secondaryColor}20`,
-                  color: styles.textColor
-                }}
+                className="text-xs mt-1 max-w-xs mx-auto"
+                style={{ color: '#888' }}
               >
                 Upload your company card in Organization Settings
               </p>
@@ -558,7 +519,7 @@ export default function CardViewPage() {
           className="flex justify-center gap-3 py-4 px-5 border-t"
           style={{ 
             borderColor: `${styles.accent}15`,
-            background: `linear-gradient(to bottom, #fff, ${styles.secondaryColor}15)`,
+            background: `linear-gradient(to bottom, #fff, #f9f9f9)`,
             borderBottomLeftRadius: '8px',
             borderBottomRightRadius: '8px'
           }}
@@ -592,10 +553,10 @@ export default function CardViewPage() {
             <Button 
               className="rounded-full shadow-sm transition-all duration-300"
               style={{ 
-                background: `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`,
-                color: styles.textColor,
+                backgroundColor: 'white',
+                color: styles.accent,
                 padding: '7px 14px',
-                borderColor: `${styles.secondaryColor}30`,
+                borderColor: `${styles.accent}30`,
                 fontSize: '0.85rem',
                 fontWeight: 500
               }}
@@ -604,15 +565,15 @@ export default function CardViewPage() {
               asChild
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = `0 4px 8px ${styles.secondaryColor}20`;
-                e.currentTarget.style.borderColor = styles.secondaryColor;
-                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}40, ${styles.secondaryColor}20)`;
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = styles.accent;
+                e.currentTarget.style.backgroundColor = `${styles.accent}05`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = `0 1px 3px ${styles.secondaryColor}10`;
-                e.currentTarget.style.borderColor = `${styles.secondaryColor}30`;
-                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`;
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = `${styles.accent}30`;
+                e.currentTarget.style.backgroundColor = 'white';
               }}
             >
               <a href={`mailto:${employee.email}`} className="flex items-center">
@@ -626,10 +587,10 @@ export default function CardViewPage() {
             <Button
               className="rounded-full shadow-sm transition-all duration-300"
               style={{ 
-                background: `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`,
-                color: styles.textColor,
+                backgroundColor: 'white',
+                color: styles.accent,
                 padding: '7px 14px',
-                borderColor: `${styles.secondaryColor}30`,
+                borderColor: `${styles.accent}30`,
                 fontSize: '0.85rem',
                 fontWeight: 500
               }}
@@ -638,15 +599,15 @@ export default function CardViewPage() {
               asChild
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = `0 4px 8px ${styles.secondaryColor}20`;
-                e.currentTarget.style.borderColor = styles.secondaryColor;
-                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}40, ${styles.secondaryColor}20)`;
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = styles.accent;
+                e.currentTarget.style.backgroundColor = `${styles.accent}05`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = `0 1px 3px ${styles.secondaryColor}10`;
-                e.currentTarget.style.borderColor = `${styles.secondaryColor}30`;
-                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`;
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+                e.currentTarget.style.borderColor = `${styles.accent}30`;
+                e.currentTarget.style.backgroundColor = 'white';
               }}
             >
               <a href={`tel:${employee.phone}`} className="flex items-center">
