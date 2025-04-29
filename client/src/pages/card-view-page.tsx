@@ -23,7 +23,14 @@ export default function CardViewPage() {
   const uniqueUrl = params?.uniqueUrl || "";
   
   // Get user data for company info
-  const { data: userData } = useQuery({
+  interface UserData {
+    id: number; 
+    email: string; 
+    orgName: string; 
+    userType: string;
+  }
+  
+  const { data: userData } = useQuery<UserData>({
     queryKey: ['/api/user'],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
@@ -335,12 +342,12 @@ export default function CardViewPage() {
           </div>
         </div>
 
-        {/* Company Card Section (Bottom Section - balanced height) */}
+        {/* Company Card Section (Bottom Section - equal to first section) */}
         {companyCard ? (
           <div
             className="w-full relative"
             style={{
-              aspectRatio: '1066/420', // Larger height for company section
+              aspectRatio: '1066/442', // Exactly matching first section
               backgroundColor: '#f8f8f8',
               borderTop: '1px solid rgba(0,0,0,0.05)'
             }}
@@ -382,7 +389,7 @@ export default function CardViewPage() {
           <div 
             className="w-full flex items-center justify-center"
             style={{
-              aspectRatio: '1066/420', // Larger height for company section
+              aspectRatio: '1066/442', // Exactly matching first section
               backgroundColor: '#f8f9fa',
               borderTop: '1px solid rgba(0,0,0,0.05)',
               boxShadow: 'inset 0 1px 6px rgba(0,0,0,0.02)'
