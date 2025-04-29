@@ -359,7 +359,7 @@ export default function CardViewPage() {
             {/* QR Code - Right */}
             <div className="col-span-2 flex flex-col items-center justify-start">
               <div 
-                className="p-1.5 bg-white rounded-md mb-2"
+                className="p-1 bg-white rounded-md mb-2"
                 style={{ 
                   border: `1px solid ${styles.secondaryColor}40`,
                   boxShadow: `0 8px 15px ${styles.secondaryColor}20`,
@@ -370,11 +370,11 @@ export default function CardViewPage() {
                   <img 
                     src={card?.qrCodeUrl} 
                     alt="QR Code" 
-                    className="h-20 w-20" 
+                    className="h-24 w-24" 
                   />
                 ) : (
                   <QrCode 
-                    className="h-20 w-20" 
+                    className="h-24 w-24" 
                     style={{ color: styles.textColor }}
                   />
                 )}
