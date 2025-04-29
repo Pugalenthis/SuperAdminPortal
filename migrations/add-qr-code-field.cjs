@@ -9,6 +9,10 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
+// Configure Neon database to use WebSockets
+const { neonConfig } = require('@neondatabase/serverless');
+neonConfig.webSocketConstructor = ws;
+
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // Convert QRCode.toDataURL to a promise-based function
