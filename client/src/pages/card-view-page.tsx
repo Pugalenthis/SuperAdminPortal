@@ -354,10 +354,14 @@ export default function CardViewPage() {
                   color: styles.accent,
                   fontWeight: 500,
                   borderLeft: `2px solid ${styles.accent}`,
-                  fontSize: '0.65rem'
+                  fontSize: '0.65rem',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '120px'
                 }}
               >
-                {companyCard?.websiteUrl || 'company website'}
+                {companyCard?.websiteUrl ? new URL(companyCard.websiteUrl).hostname : 'No website'}
               </span>
               <span 
                 className="text-center"
