@@ -43,8 +43,8 @@ async function getImageDimensions(imageBuffer: Buffer) {
 // Helper function to generate QR code for a business card
 async function generateQRCode(uniqueUrl: string, accentColor: string = '#0066cc') {
   try {
-    // Create a full URL from the unique URL
-    const fullUrl = `${process.env.HOST || 'https://app.digitalbusinesscards.com'}/card/${uniqueUrl}`;
+    // Create a full URL from the unique URL using the request host
+    const fullUrl = `${process.env.HOST || 'https://' + req.get('host')}/card/${uniqueUrl}`;
     
     // Options for QR code generation
     const options = {
