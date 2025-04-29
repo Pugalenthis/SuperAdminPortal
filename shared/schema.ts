@@ -84,6 +84,7 @@ export const businessCards = pgTable("business_cards", {
   companyCardId: integer("company_card_id").references(() => companyCards.id),
   customization: json("customization"),
   uniqueUrl: text("unique_url").notNull().unique(),
+  qrCodeUrl: text("qr_code_url"),  // Store generated QR code as data URL
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
