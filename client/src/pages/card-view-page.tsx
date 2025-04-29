@@ -275,38 +275,18 @@ export default function CardViewPage() {
             <div className="col-span-4">
               {/* Logo removed from first section as requested */}
               
-              <div 
-                className="mb-1 relative"
+              <h1 
+                className="text-2xl font-bold mb-1"
+                style={{ color: styles.textColor }}
               >
-                <h1 
-                  className="text-2xl font-bold"
-                  style={{ 
-                    color: styles.textColor,
-                    textShadow: `1px 1px 1px ${styles.secondaryColor}30`
-                  }}
-                >
-                  {employee.firstName} {employee.lastName}
-                </h1>
-                <div 
-                  className="absolute -bottom-1 left-0 h-0.5 w-20"
-                  style={{ 
-                    background: `linear-gradient(to right, ${styles.secondaryColor}, transparent)`,
-                    borderRadius: '2px'
-                  }}
-                />
-              </div>
-              <div className="flex items-center gap-1.5 mb-3">
-                <div 
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: styles.secondaryColor }}
-                />
-                <p 
-                  className="text-sm font-medium"
-                  style={{ color: styles.accent }}
-                >
-                  {employee.title}
-                </p>
-              </div>
+                {employee.firstName} {employee.lastName}
+              </h1>
+              <p 
+                className="text-sm font-medium mb-3"
+                style={{ color: styles.accent }}
+              >
+                {employee.title}
+              </p>
               
               {/* Contact Info below name - more compact */}
               <div className="grid grid-cols-1 gap-1.5">
