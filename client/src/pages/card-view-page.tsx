@@ -247,14 +247,10 @@ export default function CardViewPage() {
                   className="w-full h-full object-contain p-1"
                 />
               </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: styles.accent }}>
-                  {adminOrgName}
-                </p>
-                {companyCard?.websiteUrl && (
-                  <p className="text-xs opacity-70">{new URL(companyCard.websiteUrl).hostname}</p>
-                )}
-              </div>
+              {/* Company name in header removed as requested */}
+              {companyCard?.websiteUrl && (
+                <p className="text-xs opacity-70">{new URL(companyCard.websiteUrl).hostname}</p>
+              )}
             </div>
             
             <span 
@@ -274,9 +270,8 @@ export default function CardViewPage() {
               background: `linear-gradient(to right, #fff, ${styles.secondaryColor}15)`
             }}
           >
-            <h2 className="text-base uppercase tracking-wider font-semibold" style={{ color: styles.accent }}>
-              {adminOrgName}
-            </h2>
+            {/* Company name removed from header as requested */}
+            <div></div>
             
             <span 
               className="text-xs px-2.5 py-0.5 rounded-full"
