@@ -43,8 +43,10 @@ async function getImageDimensions(imageBuffer: Buffer) {
 // Helper function to generate QR code for a business card
 async function generateQRCode(uniqueUrl: string, accentColor: string = '#0066cc') {
   try {
-    // Create a full URL from the unique URL using the request host
-    const host = process.env.HOST || 'https://businesscards.replit.app';
+    // Create a full URL from the unique URL - using localhost for development
+    const isDev = process.env.NODE_ENV === 'development';
+    // Use localhost or whatever the replit.app domain is for the deployed version
+    const host = isDev ? 'http://localhost:5000' : process.env.HOST || 'https://businesscards.replit.app';
     const fullUrl = `${host}/card/${uniqueUrl}`;
     
     console.log("Generating QR code for URL:", fullUrl);
