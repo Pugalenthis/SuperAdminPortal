@@ -1,4 +1,4 @@
-import { pool } from '../server/db.js';
+import { pool } from '../server/db';
 import QRCode from 'qrcode';
 import { promisify } from 'util';
 

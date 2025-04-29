@@ -372,10 +372,18 @@ export default function CardViewPage() {
                   background: `linear-gradient(135deg, #fff, ${styles.secondaryColor}05)`
                 }}
               >
-                <QrCode 
-                  className="h-16 w-16" 
-                  style={{ color: styles.textColor }}
-                />
+                {card?.qrCodeUrl ? (
+                  <img 
+                    src={card?.qrCodeUrl} 
+                    alt="QR Code" 
+                    className="h-16 w-16" 
+                  />
+                ) : (
+                  <QrCode 
+                    className="h-16 w-16" 
+                    style={{ color: styles.textColor }}
+                  />
+                )}
               </div>
               
               {/* Website URL directly below QR code */}
