@@ -225,26 +225,36 @@ export default function CardViewPage() {
           borderRadius: '8px'
         }}
       >
-        {/* Employee Section (Top Section - 1066px × 442px) */}
-        <div 
-          className="w-full px-5 pt-5 pb-4"
-          style={{ 
-            aspectRatio: '1066/442', // Exact dimensions as specified
-            background: styles.background, 
-            color: styles.textColor,
-            borderTop: `4px solid ${styles.accent}`,
-            boxShadow: 'inset 0 0 30px rgba(0,0,0,0.01)'
-          }}
-        >
-          {/* Company Name (Logo removed as requested) */}
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 
-                className="text-base uppercase tracking-wider font-semibold"
-                style={{ color: styles.accent }}
+        {/* Company Logo Header Above First Section */}
+        {companyCard?.logoPath ? (
+          <div className="px-5 py-3 flex justify-between items-center" 
+            style={{
+              borderBottom: `1px solid ${styles.accent}10`,
+              background: `linear-gradient(to right, #fff, ${styles.secondaryColor}15)`
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 flex-shrink-0 rounded overflow-hidden" 
+                style={{
+                  boxShadow: `0 3px 8px ${styles.accent}20`,
+                  border: `1px solid ${styles.accent}30`,
+                  background: 'white'
+                }}
               >
-                {adminOrgName}
-              </h2>
+                <img 
+                  src={companyCard.logoPath} 
+                  alt={adminOrgName} 
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: styles.accent }}>
+                  {adminOrgName}
+                </p>
+                {companyCard?.websiteUrl && (
+                  <p className="text-xs opacity-70">{new URL(companyCard.websiteUrl).hostname}</p>
+                )}
+              </div>
             </div>
             
             <span 
@@ -257,6 +267,38 @@ export default function CardViewPage() {
               Digital Card
             </span>
           </div>
+        ) : (
+          <div className="px-5 py-3 flex justify-between items-center" 
+            style={{
+              borderBottom: `1px solid ${styles.accent}10`,
+              background: `linear-gradient(to right, #fff, ${styles.secondaryColor}15)`
+            }}
+          >
+            <h2 className="text-base uppercase tracking-wider font-semibold" style={{ color: styles.accent }}>
+              {adminOrgName}
+            </h2>
+            
+            <span 
+              className="text-xs px-2.5 py-0.5 rounded-full"
+              style={{ 
+                backgroundColor: `${styles.accent}10`,
+                color: styles.accent
+              }}
+            >
+              Digital Card
+            </span>
+          </div>
+        )}
+      
+        {/* Employee Section (Top Section - 1066px × 442px) */}
+        <div 
+          className="w-full px-5 pt-4 pb-4"
+          style={{ 
+            aspectRatio: '1066/442', // Exact dimensions as specified
+            background: styles.background, 
+            color: styles.textColor
+          }}
+        >
           
           <Separator className="mb-4" style={{ backgroundColor: `${styles.accent}20` }} />
           
@@ -264,24 +306,7 @@ export default function CardViewPage() {
           <div className="grid grid-cols-6 gap-2 mb-4">
             {/* Name & Title - Left */}
             <div className="col-span-4">
-              {/* Company logo placed strategically above name */}
-              {companyCard?.logoPath && (
-                <div className="mb-3 flex">
-                  <div 
-                    className="w-12 h-12 rounded overflow-hidden border-2 mr-2"
-                    style={{ 
-                      borderColor: `${styles.accent}30`,
-                      boxShadow: '0 3px 8px rgba(0,0,0,0.08)'
-                    }}
-                  >
-                    <img 
-                      src={companyCard.logoPath} 
-                      alt={adminOrgName}
-                      className="w-full h-full object-contain p-1" 
-                    />
-                  </div>
-                </div>
-              )}
+              {/* Logo removed from first section as requested */}
               
               <h1 
                 className="text-2xl font-bold mb-1"
