@@ -10,7 +10,8 @@ import {
   insertCustomTemplateSchema,
   insertCompanyCardSchema,
   employeeFormSchema,
-  companyCardFormSchema
+  companyCardFormSchema,
+  InsertCompanyCard
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { z } from "zod";
@@ -1214,6 +1215,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading company card:", error);
       res.status(500).json({ message: "Failed to upload company card" });
+    }
+  });
+  
+  // Update company branding (logo and colors)
+  app.post("/api/company-branding", isAdmin, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      
+      // Get active company card or create a new one if none exists
+      let companyCard = await storage.getActiveCompanyCardByAdminId(adminId);
+      const updateData: Partial<InsertCompanyCard> = {};
+      
+      // Handle logo upload if present
+      if (req.files && req.files.logo) {
+        const logoFile = req.files.logo;
+        
+        // Validate file type
+        if (!logoFile.mimetype.startsWith('image/')) {
+          return res.status(400).json({ message: "Uploaded logo is not an image" });
+        }
+        
+        // Create a unique filename for the logo
+        const timestamp = Date.now();
+        const filename = `company_logo_${adminId}_${timestamp}${path.extname(logoFile.name)}`;
+        const uploadPath = path.join(__dirname, '../public/uploads', filename);
+        const publicPath = `/uploads/${filename}`;
+        
+        // Ensure the uploads directory exists
+        await fs.mkdir(path.join(__dirname, '../public/uploads'), { recursive: true });
+        
+        // Save the file
+        await new Promise<void>((resolve, reject) => {
+          logoFile.mv(uploadPath, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        
+        // Add logo path to update data
+        updateData.logoPath = publicPath;
+      }
+      
+      // Handle color updates if present
+      if (req.body.primaryColor) {
+        updateData.primaryColor = req.body.primaryColor;
+      }
+      
+      if (req.body.secondaryColor) {
+        updateData.secondaryColor = req.body.secondaryColor;
+      }
+      
+      // Update or create company card
+      if (companyCard) {
+        companyCard = await storage.updateCompanyCard(companyCard.id, updateData);
+      } else {
+        // If no company card exists yet, we need at least a placeholder image path
+        updateData.adminId = adminId;
+        updateData.imagePath = '/uploads/placeholder-company-card.svg'; // Using the SVG placeholder
+        updateData.width = 1066;
+        updateData.height = 442;
+        updateData.isActive = true;
+        companyCard = await storage.createCompanyCard(updateData as InsertCompanyCard);
+      }
+      
+      res.status(200).json(companyCard);
+    } catch (error) {
+      console.error("Error updating company branding:", error);
+      res.status(500).json({ message: "Failed to update company branding" });
     }
   });
 
