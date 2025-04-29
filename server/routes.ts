@@ -1266,6 +1266,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.secondaryColor = req.body.secondaryColor;
       }
       
+      // Handle website URL and enquiries email if present
+      if (req.body.websiteUrl) {
+        updateData.websiteUrl = req.body.websiteUrl;
+      }
+      
+      if (req.body.enquiriesEmail) {
+        updateData.enquiriesEmail = req.body.enquiriesEmail;
+      }
+      
       // Update or create company card
       if (companyCard) {
         companyCard = await storage.updateCompanyCard(companyCard.id, updateData);

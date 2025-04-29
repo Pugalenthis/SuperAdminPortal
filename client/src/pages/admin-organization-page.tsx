@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Upload, Trash2, Building2, Image, Palette } from "lucide-react";
+import { ArrowLeft, Upload, Trash2, Building2, Image, Palette, Globe, Mail, Link } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +36,8 @@ export default function AdminOrganizationPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState<string>("#0066cc");
   const [secondaryColor, setSecondaryColor] = useState<string>("#f5f5f5");
+  const [websiteUrl, setWebsiteUrl] = useState<string>("");
+  const [enquiriesEmail, setEnquiriesEmail] = useState<string>("");
   const [isSavingBranding, setIsSavingBranding] = useState(false);
   
   // Navigation function
@@ -201,6 +203,31 @@ export default function AdminOrganizationPage() {
     await uploadMutation.mutateAsync(formData);
   };
   
+  // Initialize form values from company card data
+  useEffect(() => {
+    if (companyCards && companyCards.length > 0) {
+      const card = companyCards[0];
+      
+      // Set colors if they exist
+      if (card.primaryColor) {
+        setPrimaryColor(card.primaryColor);
+      }
+      
+      if (card.secondaryColor) {
+        setSecondaryColor(card.secondaryColor);
+      }
+      
+      // Set website and email if they exist
+      if (card.websiteUrl) {
+        setWebsiteUrl(card.websiteUrl);
+      }
+      
+      if (card.enquiriesEmail) {
+        setEnquiriesEmail(card.enquiriesEmail);
+      }
+    }
+  }, [companyCards]);
+
   // Handle save branding
   const handleSaveBranding = async () => {
     setIsSavingBranding(true);
@@ -213,6 +240,8 @@ export default function AdminOrganizationPage() {
     
     formData.append('primaryColor', primaryColor);
     formData.append('secondaryColor', secondaryColor);
+    formData.append('websiteUrl', websiteUrl);
+    formData.append('enquiriesEmail', enquiriesEmail);
     
     await updateBrandingMutation.mutateAsync(formData);
   };
@@ -409,6 +438,10 @@ export default function AdminOrganizationPage() {
                     <Palette className="h-4 w-4" />
                     Colors
                   </TabsTrigger>
+                  <TabsTrigger value="contact" className="flex items-center gap-1">
+                    <Globe className="h-4 w-4" />
+                    Contact
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="logo" className="space-y-4">
@@ -524,6 +557,86 @@ export default function AdminOrganizationPage() {
                         style={{ backgroundColor: secondaryColor, color: primaryColor }}
                       >
                         Secondary Background with Primary Text
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="contact" className="space-y-4">
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <Label htmlFor="website-url" className="block mb-2">
+                        Company Website URL
+                      </Label>
+                      <div className="flex items-center">
+                        <div className="bg-muted p-2 rounded-l-md border-y border-l">
+                          <Globe className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <Input
+                          id="website-url"
+                          type="url"
+                          placeholder="https://www.example.com"
+                          value={websiteUrl}
+                          onChange={(e) => setWebsiteUrl(e.target.value)}
+                          className="flex-1 rounded-l-none"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Your company website address displayed on business cards
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="enquiries-email" className="block mb-2">
+                        Enquiries Email Address
+                      </Label>
+                      <div className="flex items-center">
+                        <div className="bg-muted p-2 rounded-l-md border-y border-l">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <Input
+                          id="enquiries-email"
+                          type="email"
+                          placeholder="contact@example.com"
+                          value={enquiriesEmail}
+                          onChange={(e) => setEnquiriesEmail(e.target.value)}
+                          className="flex-1 rounded-l-none"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Email address for general enquiries to your company
+                      </p>
+                    </div>
+                    
+                    <div className="mt-2 p-4 border rounded-md bg-muted/30">
+                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Link className="h-4 w-4" />
+                        Contact Information Preview
+                      </h3>
+                      <div className="space-y-2">
+                        {websiteUrl ? (
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-primary" />
+                            <span className="text-sm">{websiteUrl}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Globe className="h-4 w-4" />
+                            <span className="text-sm">No website URL provided</span>
+                          </div>
+                        )}
+                        
+                        {enquiriesEmail ? (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-primary" />
+                            <span className="text-sm">{enquiriesEmail}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Mail className="h-4 w-4" />
+                            <span className="text-sm">No enquiries email provided</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
