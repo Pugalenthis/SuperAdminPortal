@@ -373,16 +373,28 @@ export default function CardViewPage() {
                 }}
               >
                 {card?.qrCodeUrl ? (
-                  <img 
-                    src={card?.qrCodeUrl} 
-                    alt="QR Code" 
-                    className="h-16 w-16" 
-                  />
+                  <>
+                    <img 
+                      src={card?.qrCodeUrl} 
+                      alt="QR Code" 
+                      className="h-16 w-16" 
+                    />
+                    {/* This is only shown in development for debugging */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <span className="text-xs text-green-600 absolute bottom-0 right-0">With QR</span>
+                    )}
+                  </>
                 ) : (
-                  <QrCode 
-                    className="h-16 w-16" 
-                    style={{ color: styles.textColor }}
-                  />
+                  <>
+                    <QrCode 
+                      className="h-16 w-16" 
+                      style={{ color: styles.textColor }}
+                    />
+                    {/* This is only shown in development for debugging */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <span className="text-xs text-red-600 absolute bottom-0 right-0">No QR</span>
+                    )}
+                  </>
                 )}
               </div>
               
