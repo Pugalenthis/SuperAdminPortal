@@ -53,7 +53,7 @@ async function generateQRCode(uniqueUrl: string, accentColor: string = '#0066cc'
       quality: 0.92,
       margin: 1,
       color: {
-        dark: accentColor,
+        dark: '#000000', // Always use black for better visibility
         light: '#FFFFFF'
       }
     };

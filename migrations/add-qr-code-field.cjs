@@ -67,7 +67,7 @@ async function addQRCodeField() {
             quality: 0.92,
             margin: 1,
             color: {
-              dark: '#0066cc',
+              dark: '#000000', // Use black for better visibility
               light: '#FFFFFF'
             }
           });
