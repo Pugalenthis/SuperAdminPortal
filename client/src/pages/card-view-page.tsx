@@ -227,27 +227,38 @@ export default function CardViewPage() {
       >
         {/* Company Logo Header Above First Section */}
         {companyCard?.logoPath ? (
-          <div className="p-4 flex justify-center items-center" 
+          <div className="px-5 py-3 flex justify-between items-center" 
             style={{
-              background: `linear-gradient(to right, #fff, ${styles.secondaryColor}10)`
+              borderBottom: `1px solid ${styles.accent}10`,
+              background: `linear-gradient(to right, #fff, ${styles.secondaryColor}15)`
             }}
           >
-            <div className="w-28 h-28 flex-shrink-0 rounded overflow-hidden" 
-              style={{
-                boxShadow: `0 4px 16px ${styles.accent}25`,
-                border: `1px solid ${styles.accent}30`,
-                background: 'white'
-              }}
-            >
-              <img 
-                src={companyCard.logoPath} 
-                alt={adminOrgName} 
-                className="w-full h-full object-contain p-2"
-              />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 flex-shrink-0 rounded overflow-hidden" 
+                style={{
+                  boxShadow: `0 3px 8px ${styles.accent}20`,
+                  border: `1px solid ${styles.accent}30`,
+                  background: 'white'
+                }}
+              >
+                <img 
+                  src={companyCard.logoPath} 
+                  alt={adminOrgName} 
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: styles.accent }}>
+                  {adminOrgName}
+                </p>
+                {companyCard?.websiteUrl && (
+                  <p className="text-xs opacity-70">{new URL(companyCard.websiteUrl).hostname}</p>
+                )}
+              </div>
             </div>
             
             <span 
-              className="absolute top-2 right-2 text-xs px-2.5 py-0.5 rounded-full"
+              className="text-xs px-2.5 py-0.5 rounded-full"
               style={{ 
                 backgroundColor: `${styles.accent}10`,
                 color: styles.accent
@@ -257,27 +268,18 @@ export default function CardViewPage() {
             </span>
           </div>
         ) : (
-          <div className="p-4 flex justify-center items-center" 
+          <div className="px-5 py-3 flex justify-between items-center" 
             style={{
-              background: `linear-gradient(to right, #fff, ${styles.secondaryColor}10)`
+              borderBottom: `1px solid ${styles.accent}10`,
+              background: `linear-gradient(to right, #fff, ${styles.secondaryColor}15)`
             }}
           >
-            <div 
-              className="w-28 h-28 rounded-full flex items-center justify-center overflow-hidden"
-              style={{ 
-                background: `linear-gradient(135deg, ${styles.accent}10, ${styles.accent}30)`,
-                boxShadow: `0 3px 12px ${styles.accent}20`,
-                border: `1px solid ${styles.accent}30`
-              }}
-            >
-              <Building 
-                className="w-14 h-14 opacity-70" 
-                style={{ color: styles.accent }}
-              />
-            </div>
+            <h2 className="text-base uppercase tracking-wider font-semibold" style={{ color: styles.accent }}>
+              {adminOrgName}
+            </h2>
             
             <span 
-              className="absolute top-2 right-2 text-xs px-2.5 py-0.5 rounded-full"
+              className="text-xs px-2.5 py-0.5 rounded-full"
               style={{ 
                 backgroundColor: `${styles.accent}10`,
                 color: styles.accent
@@ -297,7 +299,8 @@ export default function CardViewPage() {
             color: styles.textColor
           }}
         >
-          {/* Divider removed as requested */}
+          
+          <Separator className="mb-4" style={{ backgroundColor: `${styles.accent}20` }} />
           
           {/* Compact layout with name/title/QR side-by-side */}
           <div className="grid grid-cols-6 gap-2 mb-4">
