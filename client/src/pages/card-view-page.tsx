@@ -519,7 +519,7 @@ export default function CardViewPage() {
           className="flex justify-center gap-3 py-4 px-5 border-t"
           style={{ 
             borderColor: `${styles.accent}15`,
-            background: `linear-gradient(to bottom, #fff, #f9f9f9)`,
+            background: `linear-gradient(to bottom, #fff, ${styles.secondaryColor}15)`,
             borderBottomLeftRadius: '8px',
             borderBottomRightRadius: '8px'
           }}
@@ -553,10 +553,10 @@ export default function CardViewPage() {
             <Button 
               className="rounded-full shadow-sm transition-all duration-300"
               style={{ 
-                backgroundColor: 'white',
-                color: styles.accent,
+                background: `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`,
+                color: styles.textColor,
                 padding: '7px 14px',
-                borderColor: `${styles.accent}30`,
+                borderColor: `${styles.secondaryColor}30`,
                 fontSize: '0.85rem',
                 fontWeight: 500
               }}
@@ -565,15 +565,15 @@ export default function CardViewPage() {
               asChild
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
-                e.currentTarget.style.borderColor = styles.accent;
-                e.currentTarget.style.backgroundColor = `${styles.accent}05`;
+                e.currentTarget.style.boxShadow = `0 4px 8px ${styles.secondaryColor}20`;
+                e.currentTarget.style.borderColor = styles.secondaryColor;
+                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}40, ${styles.secondaryColor}20)`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
-                e.currentTarget.style.borderColor = `${styles.accent}30`;
-                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.boxShadow = `0 1px 3px ${styles.secondaryColor}10`;
+                e.currentTarget.style.borderColor = `${styles.secondaryColor}30`;
+                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`;
               }}
             >
               <a href={`mailto:${employee.email}`} className="flex items-center">
@@ -587,10 +587,10 @@ export default function CardViewPage() {
             <Button
               className="rounded-full shadow-sm transition-all duration-300"
               style={{ 
-                backgroundColor: 'white',
-                color: styles.accent,
+                background: `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`,
+                color: styles.textColor,
                 padding: '7px 14px',
-                borderColor: `${styles.accent}30`,
+                borderColor: `${styles.secondaryColor}30`,
                 fontSize: '0.85rem',
                 fontWeight: 500
               }}
@@ -599,15 +599,15 @@ export default function CardViewPage() {
               asChild
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
-                e.currentTarget.style.borderColor = styles.accent;
-                e.currentTarget.style.backgroundColor = `${styles.accent}05`;
+                e.currentTarget.style.boxShadow = `0 4px 8px ${styles.secondaryColor}20`;
+                e.currentTarget.style.borderColor = styles.secondaryColor;
+                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}40, ${styles.secondaryColor}20)`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
-                e.currentTarget.style.borderColor = `${styles.accent}30`;
-                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.boxShadow = `0 1px 3px ${styles.secondaryColor}10`;
+                e.currentTarget.style.borderColor = `${styles.secondaryColor}30`;
+                e.currentTarget.style.background = `linear-gradient(to right, ${styles.secondaryColor}30, ${styles.secondaryColor}10)`;
               }}
             >
               <a href={`tel:${employee.phone}`} className="flex items-center">
