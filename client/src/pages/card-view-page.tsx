@@ -236,23 +236,9 @@ export default function CardViewPage() {
             boxShadow: 'inset 0 0 30px rgba(0,0,0,0.01)'
           }}
         >
-          {/* Company Logo/Name */}
+          {/* Company Name (Logo removed as requested) */}
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {companyCard?.logoPath ? (
-                <div 
-                  className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border"
-                  style={{ 
-                    borderColor: `${styles.accent}30`,
-                  }}
-                >
-                  <img 
-                    src={companyCard.logoPath} 
-                    alt={adminOrgName}
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              ) : null}
               <h2 
                 className="text-base uppercase tracking-wider font-semibold"
                 style={{ color: styles.accent }}
@@ -278,6 +264,25 @@ export default function CardViewPage() {
           <div className="grid grid-cols-6 gap-2 mb-4">
             {/* Name & Title - Left */}
             <div className="col-span-4">
+              {/* Company logo placed strategically above name */}
+              {companyCard?.logoPath && (
+                <div className="mb-3 flex">
+                  <div 
+                    className="w-12 h-12 rounded overflow-hidden border-2 mr-2"
+                    style={{ 
+                      borderColor: `${styles.accent}30`,
+                      boxShadow: '0 3px 8px rgba(0,0,0,0.08)'
+                    }}
+                  >
+                    <img 
+                      src={companyCard.logoPath} 
+                      alt={adminOrgName}
+                      className="w-full h-full object-contain p-1" 
+                    />
+                  </div>
+                </div>
+              )}
+              
               <h1 
                 className="text-2xl font-bold mb-1"
                 style={{ color: styles.textColor }}
@@ -336,7 +341,7 @@ export default function CardViewPage() {
             {/* QR Code - Right */}
             <div className="col-span-2 flex flex-col items-center justify-start">
               <div 
-                className="p-1.5 bg-white rounded-md mb-1.5"
+                className="p-1.5 bg-white rounded-md mb-2"
                 style={{ 
                   border: `1px solid ${styles.accent}30`,
                   boxShadow: '0 8px 15px rgba(0,0,0,0.08)'
@@ -347,22 +352,27 @@ export default function CardViewPage() {
                   style={{ color: styles.textColor }}
                 />
               </div>
-              <span 
-                className="text-xs px-2 py-0.5 rounded text-center text-xs mb-0.5"
-                style={{ 
-                  backgroundColor: `${styles.accent}15`,
-                  color: styles.accent,
-                  fontWeight: 500,
-                  borderLeft: `2px solid ${styles.accent}`,
-                  fontSize: '0.65rem',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '120px'
-                }}
-              >
-                {companyCard?.websiteUrl ? new URL(companyCard.websiteUrl).hostname : 'No website'}
-              </span>
+              
+              {/* Website URL directly below QR code */}
+              {companyCard?.websiteUrl && (
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Globe 
+                    className="h-3 w-3 flex-shrink-0"
+                    style={{ color: styles.accent }} 
+                  />
+                  <span 
+                    className="text-center"
+                    style={{ 
+                      color: styles.accent,
+                      fontSize: '0.7rem',
+                      fontWeight: 500
+                    }}
+                  >
+                    {new URL(companyCard.websiteUrl).hostname}
+                  </span>
+                </div>
+              )}
+              
               <span 
                 className="text-center"
                 style={{ 
@@ -407,37 +417,7 @@ export default function CardViewPage() {
               }}
             />
             
-            {/* Company logo overlay */}
-            {companyCard.logoPath && (
-              <div 
-                className="absolute left-0 right-0 top-0 bottom-0 flex items-center justify-center"
-                style={{
-                  zIndex: 2
-                }}
-              >
-                <div
-                  className="relative w-2/3 h-3/4 flex items-center justify-center"
-                >
-                  <img 
-                    src={companyCard.logoPath} 
-                    alt="Company Logo"
-                    className="max-w-full max-h-full object-contain"
-                    style={{
-                      filter: 'drop-shadow(0 6px 8px rgba(0,0,0,0.15))'
-                    }}
-                  />
-                  
-                  {/* Subtle accent-colored glow effect around the logo */}
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background: `radial-gradient(circle, ${styles.accent}10 0%, transparent 70%)`,
-                      zIndex: -1
-                    }}
-                  />
-                </div>
-              </div>
-            )}
+            {/* Removed logo overlay as requested */}
             
             {/* Bottom gradient for depth */}
             <div 
