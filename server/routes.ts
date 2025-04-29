@@ -20,6 +20,7 @@ import fs from 'fs/promises';
 import { promisify } from 'util';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
+import QRCode from 'qrcode';
 
 // Set up __dirname equivalent for ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -35,6 +36,33 @@ async function getImageDimensions(imageBuffer: Buffer) {
     };
   } catch (error) {
     console.error("Error getting image dimensions:", error);
+    return null;
+  }
+}
+
+// Helper function to generate QR code for a business card
+async function generateQRCode(uniqueUrl: string, accentColor: string = '#0066cc') {
+  try {
+    // Create a full URL from the unique URL
+    const fullUrl = `${process.env.HOST || 'https://app.digitalbusinesscards.com'}/card/${uniqueUrl}`;
+    
+    // Options for QR code generation
+    const options = {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      quality: 0.92,
+      margin: 1,
+      color: {
+        dark: accentColor,
+        light: '#FFFFFF'
+      }
+    };
+    
+    // Generate QR code as data URL
+    const qrDataUrl = await promisify(QRCode.toDataURL)(fullUrl, options);
+    return qrDataUrl;
+  } catch (error) {
+    console.error("Error generating QR code:", error);
     return null;
   }
 }
