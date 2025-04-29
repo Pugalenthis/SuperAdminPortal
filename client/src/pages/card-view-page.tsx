@@ -35,7 +35,6 @@ export default function CardViewPage() {
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
-  const adminOrgName = userData?.orgName || "ORGANIZATION";
 
   // Fetch card data
   const { data, isLoading, error } = useQuery<CardViewData>({
@@ -236,7 +235,7 @@ export default function CardViewPage() {
             <p className="text-sm font-semibold uppercase tracking-wider" 
                style={{ color: styles.accent }}
             >
-              {adminOrgName}
+              {employee?.adminId && data?.employee?.adminId === 4 ? "TRDFIN" : data?.employee?.department || "BUSINESS CARD"}
             </p>
             {companyCard?.websiteUrl && (
               <p className="text-xs" style={{ color: `${styles.textColor}90` }}>
@@ -357,7 +356,7 @@ export default function CardViewPage() {
                       style={{ color: styles.textColor }} 
                     />
                   </div>
-                  <span className="text-xs">{adminOrgName}</span>
+                  <span className="text-xs">{employee?.adminId && data?.employee?.adminId === 4 ? "TRDFIN" : data?.employee?.department || "BUSINESS CARD"}</span>
                 </div>
               </div>
             </div>
