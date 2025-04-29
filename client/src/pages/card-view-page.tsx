@@ -423,16 +423,22 @@ export default function CardViewPage() {
                 </span>
                 
                 {companyCard?.websiteUrl && (
-                  <span 
-                    className="text-center mt-1.5"
+                  <a 
+                    href={companyCard.websiteUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-center mt-2.5 px-2 py-1 rounded-full block"
                     style={{ 
                       color: styles.accent,
                       fontSize: '0.75rem',
-                      fontWeight: 500
+                      fontWeight: 500,
+                      backgroundColor: `${styles.secondaryColor}15`,
+                      border: `1px solid ${styles.secondaryColor}30`,
+                      textDecoration: 'none'
                     }}
                   >
                     {companyCard.websiteUrl}
-                  </span>
+                  </a>
                 )}
               </div>
             </div>
