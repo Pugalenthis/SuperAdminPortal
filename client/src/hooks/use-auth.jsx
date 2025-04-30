@@ -25,7 +25,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function fetchUser() {
       try {
-        console.log('AuthProvider state updated:', { isLoading: true });
         setIsLoading(true);
         const response = await fetch('/api/user', {
           credentials: 'include'
@@ -33,14 +32,11 @@ export function AuthProvider({ children }) {
         
         if (response.ok) {
           const userData = await response.json();
-          console.log('User data fetched:', userData);
           
           if (userData.userType === 'superadmin') {
-            console.log('User is a superadmin, redirecting to superadmin page');
             setLocation('/super/admins');
           } else {
-            console.log('User is not a superadmin, redirecting to appropriate page');
-            // Handle regular admin
+            // Regular admin stays where they are
           }
           
           setUser(userData);
@@ -51,7 +47,6 @@ export function AuthProvider({ children }) {
         console.error('Error fetching user:', err);
         setUser(null);
       } finally {
-        console.log('AuthProvider state updated:', { user, isLoading: false });
         setIsLoading(false);
       }
     }
@@ -74,22 +69,22 @@ export function AuthProvider({ children }) {
         credentials: 'include'
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+        throw new Error(data.message || 'Login failed');
       }
 
-      const userData = await response.json();
-      setUser(userData);
+      setUser(data);
       
       // Redirect based on user type
-      if (userData.userType === 'superadmin') {
+      if (data.userType === 'superadmin') {
         setLocation('/super/admins');
       } else {
         setLocation('/');
       }
       
-      return userData;
+      return data;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -109,8 +104,12 @@ export function AuthProvider({ children }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Logout failed');
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Logout failed');
+        } catch (e) {
+          throw new Error('Logout failed');
+        }
       }
 
       setUser(null);
