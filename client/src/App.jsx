@@ -5,6 +5,8 @@ import { useAuth } from './hooks/use-auth.jsx';
 // Pages
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import Employees from './pages/Employees.jsx';
+import EmployeeForm from './pages/EmployeeForm.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 // Components
@@ -27,6 +29,10 @@ function App() {
           <Route path="/login" component={Login} />
           
           <ProtectedRoute path="/" component={Dashboard} />
+          <ProtectedRoute path="/employees" component={Employees} />
+          <ProtectedRoute path="/employees/new" component={EmployeeForm} />
+          <ProtectedRoute path="/employees/:id/edit" component={EmployeeForm} />
+          <ProtectedRoute path="/business-cards" component={BusinessCards} />
           
           <Route component={NotFound} />
         </Switch>
