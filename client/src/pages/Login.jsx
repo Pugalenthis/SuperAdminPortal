@@ -3,8 +3,8 @@ import { useLocation } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin1@example.com'); // Prepopulated for testing
+  const [password, setPassword] = useState('password123'); // Prepopulated for testing
   const [formError, setFormError] = useState('');
   const { login, loginLoading, error } = useAuth();
   const [, setLocation] = useLocation();
@@ -24,11 +24,30 @@ function Login() {
     }
     
     try {
-      await login({ email, password });
-      // Redirect will be handled in the login function
+      // Basic login request with fetch instead of using the hook
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setFormError(data.message || 'Login failed');
+        return;
+      }
+      
+      // Login succeeded
+      console.log('Login successful:', data);
+      // Redirect to dashboard
+      setLocation('/');
     } catch (error) {
-      // Error is already handled by the useAuth hook
       console.error('Login error:', error);
+      setFormError('An error occurred during login. Please try again.');
     }
   };
 
