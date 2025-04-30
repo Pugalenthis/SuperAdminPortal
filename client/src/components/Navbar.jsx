@@ -10,30 +10,30 @@ function Navbar() {
     <nav className="navbar">
       <div className="container navbar-container">
         <div className="navbar-brand">
-          <Link href="/">
-            <a className="navbar-logo">Digital Card Hub</a>
+          <Link href="/" className="navbar-logo">
+            Digital Card Hub
           </Link>
         </div>
         
         <div className="navbar-menu">
-          <Link href="/">
-            <a className={location === '/' ? 'active' : ''}>Dashboard</a>
+          <Link href="/" className={location === '/' ? 'active' : ''}>
+            Dashboard
           </Link>
           
-          <Link href="/employees">
-            <a className={location === '/employees' ? 'active' : ''}>Employees</a>
+          <Link href="/employees" className={location === '/employees' ? 'active' : ''}>
+            Employees
           </Link>
           
-          <Link href="/business-cards">
-            <a className={location === '/business-cards' ? 'active' : ''}>Business Cards</a>
+          <Link href="/business-cards" className={location === '/business-cards' ? 'active' : ''}>
+            Business Cards
           </Link>
           
-          <Link href="/templates">
-            <a className={location === '/templates' ? 'active' : ''}>Templates</a>
+          <Link href="/templates" className={location === '/templates' ? 'active' : ''}>
+            Templates
           </Link>
           
-          <Link href="/company-cards">
-            <a className={location === '/company-cards' ? 'active' : ''}>Company Cards</a>
+          <Link href="/company-cards" className={location === '/company-cards' ? 'active' : ''}>
+            Company Cards
           </Link>
         </div>
         

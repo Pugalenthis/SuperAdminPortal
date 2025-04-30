@@ -19,28 +19,28 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Loading from './components/Loading.jsx';
 
 function App() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
+  // Temporary approach - bypassing auth check for development
+  const mockUser = {
+    id: 1,
+    email: 'admin1@example.com',
+    orgName: 'Test Company',
+    userType: 'admin'
+  };
+  
   return (
     <div className="app">
-      {user && <Navbar />}
+      <Navbar />
       <main className="container">
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/card/:uniqueUrl" component={CardView} />
-          
-          <ProtectedRoute path="/" component={Dashboard} />
-          <ProtectedRoute path="/employees" component={Employees} />
-          <ProtectedRoute path="/employees/new" component={EmployeeForm} />
-          <ProtectedRoute path="/employees/:id/edit" component={EmployeeForm} />
-          <ProtectedRoute path="/business-cards" component={BusinessCards} />
-          <ProtectedRoute path="/templates" component={CardTemplates} />
-          <ProtectedRoute path="/company-cards" component={CompanyCards} />
-          
+          <Route path="/" component={Dashboard} />
+          <Route path="/employees" component={Employees} />
+          <Route path="/employees/new" component={EmployeeForm} />
+          <Route path="/employees/:id/edit" component={EmployeeForm} />
+          <Route path="/business-cards" component={BusinessCards} />
+          <Route path="/templates" component={CardTemplates} />
+          <Route path="/company-cards" component={CompanyCards} />
           <Route component={NotFound} />
         </Switch>
       </main>
